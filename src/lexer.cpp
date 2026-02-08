@@ -27,9 +27,8 @@ TokenStream Lexer::tokenize(const std::string &input) {
 
     const auto flush_word = [&out, &word]() {
         if (!word.empty()) {
-            out.push_back(
-                Token{.type = TokenType::WORD, .value = std::move(word)}
-            );
+            out.push_back(Token{
+                .type = TokenType::WORD, .value = std::move(word)});
             word.clear();
         }
     };

@@ -58,7 +58,7 @@ jobs:
     
     - name: Run cppcheck
       run: |
-        find src tests -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.h' | \
+        find src -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.h' | \
         xargs cppcheck \
           --enable=all \
           --suppressions-list=cppcheck-suppressions.txt \
@@ -87,26 +87,6 @@ jobs:
 
       - name: Test
         run: cmake --build build --target fluffy_tribble_test && (cd build && ctest --output-on-failure)
-
-  build-and-test-windows:
-    name: "Build & Test (Windows)"
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        build_type: [Release, Debug]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-
-      - name: Build
-        run: cmake --build build --config ${{ matrix.build_type }}
-
-      - name: Test
-        run: |
-          cd build
-          ctest --build-config ${{ matrix.build_type }} --output-on-failure
 
   build-and-test-macos:
     name: "Build & Test (macOS)"

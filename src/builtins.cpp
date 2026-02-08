@@ -16,13 +16,9 @@ void cat_stream(ReaderT &in, WriterT &out) {
 }  // namespace
 
 template <>
-void run<CommandID::CAT>(
-    const std::vector<std::string> &args,
-    ReaderT &input,
-    WriterT &output,
-    WriterT &err,
-    ExecutionContext &
-) {
+void run<
+    CommandID::
+        CAT>(const std::vector<std::string> &args, ReaderT &input, WriterT &output, WriterT &err, ExecutionContext &) {
     if (args.empty()) {
         cat_stream(input, output);
         return;
@@ -36,13 +32,9 @@ void run<CommandID::CAT>(
 }
 
 template <>
-void run<CommandID::ECHO>(
-    const std::vector<std::string> &args,
-    ReaderT &,
-    WriterT &output,
-    WriterT &,
-    ExecutionContext &
-) {
+void run<
+    CommandID::
+        ECHO>(const std::vector<std::string> &args, ReaderT &, WriterT &output, WriterT &, ExecutionContext &) {
     for (std::size_t i = 0; i < args.size(); ++i) {
         if (i != 0) {
             output << ' ';
@@ -53,13 +45,9 @@ void run<CommandID::ECHO>(
 }
 
 template <>
-void run<CommandID::WC>(
-    const std::vector<std::string> &args,
-    ReaderT &input,
-    WriterT &output,
-    WriterT &err,
-    ExecutionContext &
-) {
+void run<
+    CommandID::
+        WC>(const std::vector<std::string> &args, ReaderT &input, WriterT &output, WriterT &err, ExecutionContext &) {
     ReaderT *in = &input;
     std::ifstream file;
     if (!args.empty()) {

@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cstring>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -51,28 +52,31 @@ std::string find_in_path(const std::string &name, const ExecutionContext &ctx) {
 std::vector<std::string> env_to_vector(const ExecutionContext::EnvMap &env) {
     std::vector<std::string> out;
     out.reserve(env.size());
-    for (const auto &p : env) {
-        out.push_back(p.first + "=" + p.second);
-    }
+    std::ranges::transform(env, std::back_inserter(out), [](const auto &p) {
+        return p.first + "=" + p.second;
+    });
     return out;
 }
 
 std::vector<char *>
 to_argv(const std::string &path, const std::vector<std::string> &args) {
     std::vector<char *> argv;
+    argv.reserve(args.size() + 2);
     argv.push_back(const_cast<char *>(path.c_str()));
-    for (const auto &a : args) {
-        argv.push_back(const_cast<char *>(a.c_str()));
-    }
+    std::ranges::transform(args, std::back_inserter(argv), [](const auto &a) {
+        return const_cast<char *>(a.c_str());
+    });
     argv.push_back(nullptr);
     return argv;
 }
 
 std::vector<char *> to_envp(const std::vector<std::string> &env_vec) {
     std::vector<char *> envp;
-    for (const auto &e : env_vec) {
-        envp.push_back(const_cast<char *>(e.c_str()));
-    }
+    envp.reserve(env_vec.size() + 1);
+    std::ranges::transform(
+        env_vec, std::back_inserter(envp),
+        [](const auto &e) { return const_cast<char *>(e.c_str()); }
+    );
     envp.push_back(nullptr);
     return envp;
 }
