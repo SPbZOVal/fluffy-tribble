@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(fluffy_tribble LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 
 # Library with all logic (shared by main and tests)
 add_library(fluffy_tribble_lib
