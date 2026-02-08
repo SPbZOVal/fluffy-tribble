@@ -14,7 +14,7 @@ add_library(lka_lib
   src/command_executor.cpp
   src/pipe_executor.cpp
 )
-target_include_directories(lka_lib PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(lka_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 # Main executable
 add_executable(lka src/main.cpp)
