@@ -1,5 +1,7 @@
 # fluffy_tribble — интерпретатор командной строки
 
+[![CI](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/ci.yml/badge.svg)](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/ci.yml)
+
 Расширяемый интерпретатор с поддержкой встроенных команд, кавычек, переменных окружения и вызова внешних программ.
 
 ## Требования

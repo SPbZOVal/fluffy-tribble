@@ -8,7 +8,8 @@ namespace fluffy_tribble {
 namespace {
 
 constexpr bool is_special_char(char c) {
-    return c == ' ' || c == '|' || c == '$' || c == '"' || c == '\'' || c == '\\';
+    return c == ' ' || c == '|' || c == '$' || c == '"' || c == '\'' ||
+           c == '\\';
 }
 
 constexpr bool is_dq_escape(char c) {
@@ -26,7 +27,9 @@ TokenStream Lexer::tokenize(const std::string &input) {
 
     const auto flush_word = [&out, &word]() {
         if (!word.empty()) {
-            out.push_back(Token{.type = TokenType::WORD, .value = std::move(word)});
+            out.push_back(
+                Token{.type = TokenType::WORD, .value = std::move(word)}
+            );
             word.clear();
         }
     };
@@ -48,8 +51,9 @@ TokenStream Lexer::tokenize(const std::string &input) {
         }
 
         if (c == '\\') {
-            const bool do_escape = in_double ||
-                (i + 1 < input.size() && is_special_char(input[i + 1]) && !in_single);
+            const bool do_escape =
+                in_double || (i + 1 < input.size() &&
+                              is_special_char(input[i + 1]) && !in_single);
             if (do_escape) {
                 escaping = true;
             } else {
@@ -86,7 +90,8 @@ TokenStream Lexer::tokenize(const std::string &input) {
             continue;
         }
 
-        if (std::isspace(static_cast<unsigned char>(c)) && !in_single && !in_double) {
+        if (std::isspace(static_cast<unsigned char>(c)) && !in_single &&
+            !in_double) {
             flush_word();
             continue;
         }

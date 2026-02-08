@@ -33,7 +33,8 @@ Pipe CommandParser::parse(const TokenStream &tokens) {
             tokens[i + 2].type == TokenType::OP_ASSIGN) {
             std::string var_name = tokens[i + 1].value;
             std::string value;
-            if (i + 3 < tokens.size() && tokens[i + 3].type == TokenType::WORD) {
+            if (i + 3 < tokens.size() &&
+                tokens[i + 3].type == TokenType::WORD) {
                 value = tokens[i + 3].value;
                 i += 3;
             } else {
