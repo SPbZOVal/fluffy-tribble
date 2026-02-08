@@ -1,13 +1,16 @@
 # fluffy-tribble
 
-[![CI](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/pr-title.yml/badge.svg?branch=release)](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/pr-title.yml)
+[![CI](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/ci.yml/badge.svg?branch=release)](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/ci.yml)
+[![PR title](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/pr-title.yml/badge.svg?branch=release)](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/pr-title.yml)
 
-CLI task
+CLI task — интерпретатор командной строки с REPL. Первая часть: встроенные команды (cat, echo, wc, pwd, exit), внешние программы, кавычки; без подстановок и пайпов.
 
 ### Team
- Grebenkin Ivan, Dorosev Anton
+Grebenkin Ivan, Dorosev Anton
 
 ### Build
+
+Сборка из консоли (Windows и Linux):
 
 ```bash
 git clone git@github.com:SPbZOVal/fluffy-tribble.git
@@ -17,6 +20,32 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ```
+
+На Windows для генерации проектов Visual Studio можно указать: `cmake .. -DCMAKE_BUILD_TYPE=Release -A x64`.
+
+### Run
+
+После сборки исполняемый файл интерпретатора:
+
+- **Linux / macOS:** `./build/cli` или `build/cli`
+- **Windows:** `build\Release\cli.exe` (или `build\cli.exe` в зависимости от генератора)
+
+Запуск в интерактивном режиме (REPL): приглашение `>>>`, ввод команды, вывод результата.
+
+### Tests
+
+Юнит-тесты (Catch2) собираются в исполняемый файл `tests` и запускаются через CTest:
+
+```bash
+cd build
+ctest -C Release --output-on-failure
+```
+
+Или напрямую: `./build/tests` (Linux/macOS), `build\Release\tests.exe` (Windows).
+
+### Architecture
+
+Описание архитектуры CLI и REPL: [arch.md](arch.md).
 
 ### Documentation
 
