@@ -1,33 +1,54 @@
 #ifndef fluffy_tribble_COMMAND_MANAGER_HPP
 #define fluffy_tribble_COMMAND_MANAGER_HPP
 
+#include <iosfwd>
 #include <string>
 #include <vector>
 #include "command_id.hpp"
 
 namespace fluffy_tribble {
 
+class ExecutionContext;
+
 /**
- * Связывает строковое имя команды с типом (CommandID).
- * Используется парсером и исполнителем для диспетчеризации.
+ * Связывает строковое имя команды с тегом (CommandID).
+ * Позволяет получать тег по имени, выполнять команду по тегу,
+ * регистрировать команды во время выполнения.
  */
 class CommandManager {
 public:
     /**
-     * Определяет тип команды по имени и аргументам.
+     * Возвращает тег команды по имени.
      * @param name Имя команды.
-     * @param args Аргументы (для присваивания уже разобраны парсером).
-     * @return EXIT для "exit", BUILTIN для cat/echo/wc/pwd, иначе EXTERNAL.
+     * @return Зарегистрированный CommandID или EXTERNAL, если имя не найдено.
      */
-    static CommandID get_command_id(
-        const std::string &name,
-        const std::vector<std::string> &args
-    );
+    static CommandID get_command_id(const std::string &name);
 
     /**
-     * Проверяет, является ли имя встроенной командой (cat, echo, wc, pwd).
+     * Регистрирует имя команды для данного тега (runtime).
+     * @param name Имя команды.
+     * @param id Тег (CAT, ECHO, WC, PWD, EXIT и т.д.).
      */
-    static bool is_builtin(const std::string &name);
+    static void register_command(const std::string &name, CommandID id);
+
+    /**
+     * Выполняет встроенную команду или exit по тегу.
+     * Для ASSIGN и EXTERNAL не вызывается (обрабатываются исполнителем).
+     * @param id Тег команды (CAT, ECHO, WC, PWD, EXIT).
+     * @param args Аргументы команды.
+     * @param input Входной поток.
+     * @param output Выходной поток.
+     * @param err Поток ошибок.
+     * @param ctx Контекст выполнения.
+     */
+    static void execute(
+        CommandID id,
+        const std::vector<std::string> &args,
+        std::istream &input,
+        std::ostream &output,
+        std::ostream &err,
+        ExecutionContext &ctx
+    );
 };
 
 }  // namespace fluffy_tribble

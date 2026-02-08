@@ -1,14 +1,12 @@
 #include "builtins.hpp"
 #include <fstream>
-#include <iostream>
 #include <sstream>
-#include "execution_context.hpp"
 
 namespace fluffy_tribble {
 
 namespace {
 
-void cat_stream(std::istream &in, std::ostream &out) {
+void cat_stream(ReaderT &in, WriterT &out) {
     std::string line;
     while (std::getline(in, line)) {
         out << line << '\n';
@@ -17,7 +15,14 @@ void cat_stream(std::istream &in, std::ostream &out) {
 
 }  // namespace
 
-void run_cat(const std::vector<std::string> &args, std::istream &input, std::ostream &output, std::ostream &err, ExecutionContext &) {
+template <>
+void run<CommandID::CAT>(
+    const std::vector<std::string> &args,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
+    ExecutionContext &
+) {
     if (args.empty()) {
         cat_stream(input, output);
         return;
@@ -30,7 +35,14 @@ void run_cat(const std::vector<std::string> &args, std::istream &input, std::ost
     cat_stream(f, output);
 }
 
-void run_echo(const std::vector<std::string> &args, std::istream &, std::ostream &output, std::ostream &, ExecutionContext &) {
+template <>
+void run<CommandID::ECHO>(
+    const std::vector<std::string> &args,
+    ReaderT &,
+    WriterT &output,
+    WriterT &,
+    ExecutionContext &
+) {
     for (std::size_t i = 0; i < args.size(); ++i) {
         if (i != 0) {
             output << ' ';
@@ -40,8 +52,15 @@ void run_echo(const std::vector<std::string> &args, std::istream &, std::ostream
     output << '\n';
 }
 
-void run_wc(const std::vector<std::string> &args, std::istream &input, std::ostream &output, std::ostream &err, ExecutionContext &) {
-    std::istream *in = &input;
+template <>
+void run<CommandID::WC>(
+    const std::vector<std::string> &args,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
+    ExecutionContext &
+) {
+    ReaderT *in = &input;
     std::ifstream file;
     if (!args.empty()) {
         file.open(args[0]);
@@ -71,21 +90,23 @@ void run_wc(const std::vector<std::string> &args, std::istream &input, std::ostr
     output << '\n';
 }
 
-void run_pwd(
+template <>
+void run<CommandID::PWD>(
     const std::vector<std::string> &,
-    std::istream &,
-    std::ostream &output,
-    std::ostream &,
+    ReaderT &,
+    WriterT &output,
+    WriterT &,
     ExecutionContext &ctx
 ) {
     output << ctx.cwd() << '\n';
 }
 
-void run_exit(
+template <>
+void run<CommandID::EXIT>(
     const std::vector<std::string> &args,
-    std::istream &,
-    std::ostream &,
-    std::ostream &,
+    ReaderT &,
+    WriterT &,
+    WriterT &,
     ExecutionContext &ctx
 ) {
     int code = 0;

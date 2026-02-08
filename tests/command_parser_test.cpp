@@ -25,7 +25,7 @@ TEST(CommandParserTest, SingleCommandNoArgs) {
     ASSERT_EQ(pipe.size(), 1u);
     EXPECT_EQ(pipe[0].name, "pwd");
     EXPECT_TRUE(pipe[0].args.empty());
-    EXPECT_EQ(pipe[0].id, CommandID::BUILTIN);
+    EXPECT_EQ(pipe[0].id, CommandID::PWD);
 }
 
 TEST(CommandParserTest, CommandWithArgs) {
@@ -35,7 +35,7 @@ TEST(CommandParserTest, CommandWithArgs) {
     ASSERT_EQ(pipe[0].args.size(), 2u);
     EXPECT_EQ(pipe[0].args[0], "hello");
     EXPECT_EQ(pipe[0].args[1], "world");
-    EXPECT_EQ(pipe[0].id, CommandID::BUILTIN);
+    EXPECT_EQ(pipe[0].id, CommandID::ECHO);
 }
 
 TEST(CommandParserTest, QuotedArg) {
@@ -54,7 +54,7 @@ TEST(CommandParserTest, ExitCommand) {
 }
 
 TEST(CommandParserTest, Assignment) {
-    Pipe pipe = parse_line("VAR=value");
+    Pipe pipe = parse_line("$VAR=value");
     ASSERT_EQ(pipe.size(), 1u);
     EXPECT_EQ(pipe[0].name, "VAR");
     ASSERT_EQ(pipe[0].args.size(), 1u);
@@ -66,8 +66,9 @@ TEST(CommandParserTest, ExternalCommand) {
     Pipe pipe = parse_line("unknown_cmd_xyz arg");
     ASSERT_EQ(pipe.size(), 1u);
     EXPECT_EQ(pipe[0].name, "unknown_cmd_xyz");
-    ASSERT_EQ(pipe[0].args.size(), 1u);
-    EXPECT_EQ(pipe[0].args[0], "arg");
+    ASSERT_EQ(pipe[0].args.size(), 2u);
+    EXPECT_EQ(pipe[0].args[0], "unknown_cmd_xyz");
+    EXPECT_EQ(pipe[0].args[1], "arg");
     EXPECT_EQ(pipe[0].id, CommandID::EXTERNAL);
 }
 

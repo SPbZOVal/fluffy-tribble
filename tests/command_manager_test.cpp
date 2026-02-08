@@ -1,39 +1,31 @@
 #include "command_manager.hpp"
 #include <gtest/gtest.h>
-#include <vector>
 #include "command_id.hpp"
 
 namespace fluffy_tribble {
 namespace {
 
 TEST(CommandManagerTest, Exit) {
-    std::vector<std::string> args;
-    EXPECT_EQ(CommandManager::get_command_id("exit", args), CommandID::EXIT);
+    EXPECT_EQ(CommandManager::get_command_id("exit"), CommandID::EXIT);
 }
 
 TEST(CommandManagerTest, Builtins) {
-    std::vector<std::string> args;
-    EXPECT_EQ(CommandManager::get_command_id("cat", args), CommandID::BUILTIN);
-    EXPECT_EQ(CommandManager::get_command_id("echo", args), CommandID::BUILTIN);
-    EXPECT_EQ(CommandManager::get_command_id("wc", args), CommandID::BUILTIN);
-    EXPECT_EQ(CommandManager::get_command_id("pwd", args), CommandID::BUILTIN);
+    EXPECT_EQ(CommandManager::get_command_id("cat"), CommandID::CAT);
+    EXPECT_EQ(CommandManager::get_command_id("echo"), CommandID::ECHO);
+    EXPECT_EQ(CommandManager::get_command_id("wc"), CommandID::WC);
+    EXPECT_EQ(CommandManager::get_command_id("pwd"), CommandID::PWD);
 }
 
 TEST(CommandManagerTest, External) {
-    std::vector<std::string> args;
-    EXPECT_EQ(CommandManager::get_command_id("ls", args), CommandID::EXTERNAL);
+    EXPECT_EQ(CommandManager::get_command_id("ls"), CommandID::EXTERNAL);
     EXPECT_EQ(
-        CommandManager::get_command_id("custom_tool", args), CommandID::EXTERNAL
+        CommandManager::get_command_id("custom_tool"), CommandID::EXTERNAL
     );
 }
 
-TEST(CommandManagerTest, IsBuiltin) {
-    EXPECT_TRUE(CommandManager::is_builtin("cat"));
-    EXPECT_TRUE(CommandManager::is_builtin("echo"));
-    EXPECT_TRUE(CommandManager::is_builtin("wc"));
-    EXPECT_TRUE(CommandManager::is_builtin("pwd"));
-    EXPECT_FALSE(CommandManager::is_builtin("exit"));
-    EXPECT_FALSE(CommandManager::is_builtin("ls"));
+TEST(CommandManagerTest, RegisterCommand) {
+    CommandManager::register_command("list", CommandID::CAT);
+    EXPECT_EQ(CommandManager::get_command_id("list"), CommandID::CAT);
 }
 
 }  // namespace

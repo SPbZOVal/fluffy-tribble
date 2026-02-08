@@ -9,7 +9,7 @@ namespace fluffy_tribble {
 
 /**
  * Преобразует поток токенов в пайплайн команд (набор ParsedCommand).
- * Присваивание (name=value) трактуется как отдельная команда с id ASSIGN.
+ * Присваивание ($name=value) трактуется как отдельная команда с id ASSIGN.
  */
 class CommandParser {
 public:

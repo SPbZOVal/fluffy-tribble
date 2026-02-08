@@ -3,6 +3,9 @@ project(fluffy_tribble LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 
+# Enable generation of compile_commands.json for better IDE support
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
 # Library with all logic (shared by main and tests)
 add_library(fluffy_tribble_lib
   src/lexer.cpp
@@ -12,7 +15,6 @@ add_library(fluffy_tribble_lib
   src/builtins.cpp
   src/external_runner.cpp
   src/command_executor.cpp
-  src/pipe_executor.cpp
 )
 target_include_directories(fluffy_tribble_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 

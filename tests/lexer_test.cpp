@@ -76,5 +76,18 @@ TEST(LexerTest, AssignOperator) {
     EXPECT_EQ(ts.back().type, TokenType::EOF_);
 }
 
+TEST(LexerTest, DollarAssignTokenOrder) {
+    Lexer lexer;
+    TokenStream ts = lexer.tokenize("$VAR=value");
+    ASSERT_GE(ts.size(), 5u);
+    EXPECT_EQ(ts[0].type, TokenType::OP_DOLLAR);
+    EXPECT_EQ(ts[1].type, TokenType::WORD);
+    EXPECT_EQ(ts[1].value, "VAR");
+    EXPECT_EQ(ts[2].type, TokenType::OP_ASSIGN);
+    EXPECT_EQ(ts[3].type, TokenType::WORD);
+    EXPECT_EQ(ts[3].value, "value");
+    EXPECT_EQ(ts.back().type, TokenType::EOF_);
+}
+
 }  // namespace
 }  // namespace fluffy_tribble

@@ -4,71 +4,81 @@
 #include <iosfwd>
 #include <string>
 #include <vector>
+#include "command_id.hpp"
+#include "execution_context.hpp"
 
 namespace fluffy_tribble {
 
-class ExecutionContext;
+/** Алиас для входного потока (архитектура). */
+using ReaderT = std::istream;
+/** Алиас для выходного потока (архитектура). */
+using WriterT = std::ostream;
 
 /**
- * Реализации встроенных команд.
- * ReaderT = std::istream, WriterT = std::ostream (см. архитектуру).
+ * Реализация команды по тегу CommandID.
+ * Специализации: CAT, ECHO, WC, PWD, EXIT.
+ * @param args Аргументы команды.
+ * @param input Входной поток (для cat/wc при чтении из stdin).
+ * @param output Выходной поток.
+ * @param err Поток ошибок.
+ * @param ctx Контекст выполнения.
  */
-
-/**
- * cat <FILE> — выводит содержимое файла в output.
- * @param args args[0] — путь к файлу; при отсутствии — читает из input.
- * @param err Поток ошибок (сообщения об ошибках открытия файла).
- */
-void run_cat(
+template <CommandID Id>
+void run(
     const std::vector<std::string> &args,
-    std::istream &input,
-    std::ostream &output,
-    std::ostream &err,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
     ExecutionContext &ctx
 );
 
-/**
- * echo — выводит аргументы в output через пробел, затем перевод строки.
- */
-void run_echo(
+/** Специализация: cat — выводит содержимое файла или stdin. */
+template <>
+void run<CommandID::CAT>(
     const std::vector<std::string> &args,
-    std::istream &,
-    std::ostream &output,
-    std::ostream &err,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
     ExecutionContext &ctx
 );
 
-/**
- * wc <FILE> — выводит количество строк, слов и байт в файле.
- * @param args args[0] — путь к файлу; при отсутствии — читает из input.
- */
-void run_wc(
+/** Специализация: echo — выводит аргументы через пробел и перевод строки. */
+template <>
+void run<CommandID::ECHO>(
     const std::vector<std::string> &args,
-    std::istream &input,
-    std::ostream &output,
-    std::ostream &err,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
     ExecutionContext &ctx
 );
 
-/**
- * pwd — выводит текущую рабочую директорию из контекста.
- */
-void run_pwd(
+/** Специализация: wc — строки, слова, байты в файле или stdin. */
+template <>
+void run<CommandID::WC>(
     const std::vector<std::string> &args,
-    std::istream &,
-    std::ostream &output,
-    std::ostream &err,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
     ExecutionContext &ctx
 );
 
-/**
- * exit [code] — устанавливает флаг выхода и код; пайплайн прерывается.
- */
-void run_exit(
+/** Специализация: pwd — текущая рабочая директория. */
+template <>
+void run<CommandID::PWD>(
     const std::vector<std::string> &args,
-    std::istream &,
-    std::ostream &output,
-    std::ostream &err,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
+    ExecutionContext &ctx
+);
+
+/** Специализация: exit — устанавливает флаг выхода и код. */
+template <>
+void run<CommandID::EXIT>(
+    const std::vector<std::string> &args,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
     ExecutionContext &ctx
 );
 
