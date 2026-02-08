@@ -1,132 +1,63 @@
-# fluffy-tribble
+# lka — интерпретатор командной строки
 
-[![CI](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/ci.yml/badge.svg?branch=release)](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/ci.yml)
-[![PR title](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/pr-title.yml/badge.svg?branch=release)](https://github.com/SPbZOVal/fluffy-tribble/actions/workflows/pr-title.yml)
+Расширяемый интерпретатор с поддержкой встроенных команд, кавычек, переменных окружения и вызова внешних программ.
 
-CLI task — интерпретатор командной строки с REPL. Первая часть: встроенные команды (cat, echo, wc, pwd, exit), внешние программы, кавычки; без подстановок и пайпов.
+## Требования
 
-### Team
-Grebenkin Ivan, Dorosev Anton
+- CMake 3.14+
+- Компилятор C++17 (GCC, Clang)
+- Linux или macOS
 
-### Build
-
-Сборка из консоли (Windows и Linux):
+## Сборка из консоли
 
 ```bash
-git clone git@github.com:SPbZOVal/fluffy-tribble.git
-cd fluffy-tribble
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake ..
 cmake --build .
 ```
 
-На Windows для генерации проектов Visual Studio можно указать: `cmake .. -DCMAKE_BUILD_TYPE=Release -A x64`.
+Исполняемый файл: `build/lka`.
 
-### Run
+## Запуск
 
-После сборки исполняемый файл интерпретатора:
+```bash
+./build/lka
+```
 
-- **Linux / macOS:** `./build/cli` или `build/cli`
-- **Windows:** `build\Release\cli.exe` (или `build\cli.exe` в зависимости от генератора)
+Запускается цикл Read-Execute-Print: приглашение `$ `, ввод строки, разбор и выполнение команды.
 
-Запуск в интерактивном режиме (REPL): приглашение `>>>`, ввод команды, вывод результата.
+## Поддерживаемые команды
 
-### Tests
+| Команда | Описание |
+|--------|----------|
+| `cat [FILE]` | Вывести содержимое файла или stdin |
+| `echo [args...]` | Вывести аргументы через пробел и перевод строки |
+| `wc [FILE]` | Строк, слов и байт в файле или stdin |
+| `pwd` | Текущая рабочая директория |
+| `exit [code]` | Выход из интерпретатора (код по умолчанию 0) |
+| `NAME=value` | Присваивание переменной окружения |
+| любая другая | Запуск внешней программы (по имени в PATH) |
 
-Юнит-тесты (Catch2) собираются в исполняемый файл `tests` и запускаются через CTest:
+Одинарные и двойные кавычки объединяют аргумент в одно слово. Переменные окружения передаются внешним процессам.
+
+## Тесты
 
 ```bash
 cd build
-ctest -C Release --output-on-failure
+ctest --output-on-failure
 ```
 
-Или напрямую: `./build/tests` (Linux/macOS), `build\Release\tests.exe` (Windows).
+Или напрямую:
 
-### Architecture
-
-Описание архитектуры CLI и REPL: [arch.md](arch.md).
-
-### Documentation
-
-[documentation](https://github.com/SPbZOVal/fluffy-tribble/tree/main/docs).
-
-## Examples
-
-```sh
-echo "Hello, world!"
->>>Hello, world!
+```bash
+./build/lka_test
 ```
 
-```sh
-FILE=example.txt
-cat $FILE
->>>Some example text
-```
+Тесты собраны на Google Test (GTest).
 
-```sh
-cat example.txt | wc
->>>1 3 18
-```
+## Структура проекта
 
-```sh
-echo 123 | wc
->>>1 1 3
-```
-
-```sh
-x=ex y=it
-$x$y
->>>exit
-```
-
-## Expected behavior
-
-### Built-in commands
-
-- `cat <file>`
-  Prints the file contents to stdout.
-
-- `echo <args...>`
-  Prints all arguments to stdout (separated by spaces).
-
-- `wc <file>`
-  Prints three numbers: lines, words, bytes.
-
-- `pwd`
-  Prints the current working directory.
-
-- `exit`
-  Terminates the interpreter.
-
-### Quoting rules
-
-- Single quotes '...' (full quoting):
-  - Everything inside is treated literally.
-  - Variable expansion ($NAME) must not be performed.
-  - Spaces inside stay part of the same argument.
-
-- Double quotes "..." (weak quoting):
-  - Spaces inside stay part of the same argument.
-  - Variable expansion ($NAME) must be performed.
-
-### Environment and variable expansion
-
-- Assignments of the form NAME=value set/update variables in the interpreter environment.
-- $NAME expands to the current value of NAME.
-- Concatenated expansions must work, e.g.:
-  x=ex y=it
-  $x$y
-  produces:
-  exit
-
-### External commands
-
-If the command name is not one of the built-ins, the interpreter should attempt to execute it as an external program.
-
-### Pipelines
-
-A pipeline cmd1 | cmd2 | ... | cmdN must:
-- connect stdout of each command to stdin of the next command
-- work for both built-ins and external commands
-- preserve the usual left-to-right data flow semantics
+- `src/` — исходный код: лексер, парсер, контекст выполнения, встроенные команды, запуск внешних программ, исполнители.
+- `tests/` — юнит-тесты (GTest).
+- Сборка и тесты настраиваются в `CMakeLists.txt`.

@@ -1,27 +1,30 @@
-/** @file external_runner.hpp
- *  Запуск внешней программы с передачей окружения и перенаправлением stdout/stderr.
- */
+#ifndef LKA_EXTERNAL_RUNNER_HPP
+#define LKA_EXTERNAL_RUNNER_HPP
 
-#ifndef FLUFFY_TRIBBLE_EXTERNAL_RUNNER_HPP
-#define FLUFFY_TRIBBLE_EXTERNAL_RUNNER_HPP
-
-#include <iosfwd>
+#include "execution_context.hpp"
 #include <string>
 #include <vector>
 
-namespace cli {
+namespace lka {
 
-/** Запускает внешнюю программу с заданными аргументами и текущим окружением.
- *  stdout и stderr дочернего процесса выводятся в out и err соответственно.
- *  @param args args[0] — путь/имя программы, остальные — аргументы
- *  @param out поток для stdout дочернего процесса
- *  @param err поток для stderr дочернего процесса
- *  @return код возврата дочернего процесса (или -1 при ошибке запуска)
+/**
+ * Запуск внешней программы с заданными аргументами и окружением из контекста.
+ * Стандартные потоки процесса наследуются от родителя (stdout/stderr идут в консоль).
  */
-int run_external(const std::vector<std::string>& args,
-                 std::ostream& out,
-                 std::ostream& err);
+class ExternalRunner {
+public:
+    /**
+     * Запускает внешнюю программу.
+     * @param name Имя или путь к программе (при отсутствии / ищется в PATH).
+     * @param args Аргументы командной строки (argv[1..]).
+     * @param ctx Контекст (окружение берётся из ctx.env()).
+     * @return Код возврата процесса (как от waitpid).
+     */
+    static int run(const std::string& name,
+                   const std::vector<std::string>& args,
+                   ExecutionContext& ctx);
+};
 
-}  // namespace cli
+}  // namespace lka
 
-#endif  // FLUFFY_TRIBBLE_EXTERNAL_RUNNER_HPP
+#endif  // LKA_EXTERNAL_RUNNER_HPP

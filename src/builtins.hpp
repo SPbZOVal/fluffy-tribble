@@ -1,62 +1,67 @@
-/** @file builtins.hpp
- *  Встроенные команды интерпретатора: cat, echo, wc, pwd, exit.
- */
-
-#ifndef FLUFFY_TRIBBLE_BUILTINS_HPP
-#define FLUFFY_TRIBBLE_BUILTINS_HPP
+#ifndef LKA_BUILTINS_HPP
+#define LKA_BUILTINS_HPP
 
 #include <iosfwd>
 #include <string>
 #include <vector>
 
-namespace cli {
+namespace lka {
 
-/** Результат выполнения встроенной команды. */
-struct RunResult {
-  /** Код возврата (0 — успех). */
-  int exit_code;
-  /** true — интерпретатор должен завершиться (команда exit). */
-  bool exit_shell;
-};
+class ExecutionContext;
 
-/** Выводит содержимое файла в out, ошибки в err.
- *  @param args первый элемент игнорируется (имя команды), второй — путь к файлу
- *  @return RunResult{0, false} при успехе, {ненулевой код, false} при ошибке
+/**
+ * Реализации встроенных команд.
+ * ReaderT = std::istream, WriterT = std::ostream (см. архитектуру).
  */
-RunResult run_cat(const std::vector<std::string>& args,
-                  std::ostream& out,
-                  std::ostream& err);
 
-/** Выводит аргументы в out через пробел (без первого — имени команды).
- *  @param args аргументы команды (args[0] — "echo", остальные — что печатать)
- *  @return RunResult{0, false}
+/**
+ * cat <FILE> — выводит содержимое файла в output.
+ * @param args args[0] — путь к файлу; при отсутствии — читает из input.
+ * @param err Поток ошибок (сообщения об ошибках открытия файла).
  */
-RunResult run_echo(const std::vector<std::string>& args,
-                  std::ostream& out,
-                  std::ostream& err);
+void run_cat(const std::vector<std::string>& args,
+             std::istream& input,
+             std::ostream& output,
+             std::ostream& err,
+             ExecutionContext& ctx);
 
-/** Выводит количество строк, слов и байт файла в out.
- *  @param args args[1] — путь к файлу
- *  @return RunResult{0, false} при успехе, иначе ненулевой exit_code
+/**
+ * echo — выводит аргументы в output через пробел, затем перевод строки.
  */
-RunResult run_wc(const std::vector<std::string>& args,
-                 std::ostream& out,
-                 std::ostream& err);
+void run_echo(const std::vector<std::string>& args,
+              std::istream&,
+              std::ostream& output,
+              std::ostream& err,
+              ExecutionContext& ctx);
 
-/** Выводит текущую рабочую директорию в out.
- *  @return RunResult{0, false} при успехе
+/**
+ * wc <FILE> — выводит количество строк, слов и байт в файле.
+ * @param args args[0] — путь к файлу; при отсутствии — читает из input.
  */
-RunResult run_pwd(const std::vector<std::string>& args,
-                  std::ostream& out,
-                  std::ostream& err);
+void run_wc(const std::vector<std::string>& args,
+            std::istream& input,
+            std::ostream& output,
+            std::ostream& err,
+            ExecutionContext& ctx);
 
-/** Сигнализирует выход из интерпретатора (ничего не выводит).
- *  @return RunResult{0, true}
+/**
+ * pwd — выводит текущую рабочую директорию из контекста.
  */
-RunResult run_exit(const std::vector<std::string>& args,
-                   std::ostream& out,
-                   std::ostream& err);
+void run_pwd(const std::vector<std::string>& args,
+             std::istream&,
+             std::ostream& output,
+             std::ostream& err,
+             ExecutionContext& ctx);
 
-}  // namespace cli
+/**
+ * exit [code] — устанавливает флаг выхода и код; пайплайн прерывается.
+ */
+void run_exit(const std::vector<std::string>& args,
+              std::istream&,
+              std::ostream& output,
+              std::ostream& err,
+              ExecutionContext& ctx);
 
-#endif  // FLUFFY_TRIBBLE_BUILTINS_HPP
+}  // namespace lka
+
+#endif  // LKA_BUILTINS_HPP

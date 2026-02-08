@@ -1,21 +1,36 @@
-/** @file main.cpp
- *  Точка входа: REPL интерпретатора командной строки.
- */
-
-#include "executor.hpp"
-#include "tokenizer.hpp"
+#include "command_parser.hpp"
+#include "execution_context.hpp"
+#include "lexer.hpp"
+#include "pipe_executor.hpp"
 #include <iostream>
 #include <string>
 
 int main() {
-  std::string line;
-  while (std::cout << ">>> ", std::getline(std::cin, line)) {
-    const cli::TokenList args = cli::tokenize(line);
-    if (args.empty())
-      continue;
-    const cli::RunResult result = cli::execute(args, std::cout, std::cerr);
-    if (result.exit_shell)
-      return result.exit_code;
-  }
-  return 0;
+    lka::ExecutionContext ctx;
+
+    while (true) {
+        std::cout << "$ " << std::flush;
+        std::string line;
+        if (!std::getline(std::cin, line)) {
+            break;
+        }
+
+        lka::Lexer lexer;
+        lka::TokenStream tokens = lexer.tokenize(line);
+
+        lka::CommandParser parser;
+        lka::Pipe pipe = parser.parse(tokens);
+
+        if (pipe.empty()) {
+            continue;
+        }
+
+        lka::PipeExecutor::execute(pipe, std::cin, std::cout, std::cerr, ctx);
+
+        if (ctx.is_exit()) {
+            return ctx.exit_code();
+        }
+    }
+
+    return 0;
 }

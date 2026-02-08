@@ -1,48 +1,43 @@
 cmake_minimum_required(VERSION 3.14)
-project(fluffy-tribble VERSION 0.1.0 LANGUAGES CXX)
+project(lka LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Static libraries for use in main and tests
-add_library(cli_tokenizer STATIC src/tokenizer.cpp)
-target_include_directories(cli_tokenizer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-add_library(cli_builtins STATIC src/builtins.cpp)
-target_include_directories(cli_builtins PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-add_library(cli_external STATIC src/external_runner.cpp)
-target_include_directories(cli_external PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-add_library(cli_executor STATIC src/executor.cpp)
-target_include_directories(cli_executor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(cli_executor PUBLIC cli_builtins cli_external)
+# Library with all logic (shared by main and tests)
+add_library(lka_lib
+  src/lexer.cpp
+  src/execution_context.cpp
+  src/command_parser.cpp
+  src/command_manager.cpp
+  src/builtins.cpp
+  src/external_runner.cpp
+  src/command_executor.cpp
+  src/pipe_executor.cpp
+)
+target_include_directories(lka_lib PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
 # Main executable
-add_executable(cli src/main.cpp)
-target_link_libraries(cli PRIVATE cli_executor cli_tokenizer)
-target_include_directories(cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_executable(lka src/main.cpp)
+target_link_libraries(lka PRIVATE lka_lib)
 
-# Unit tests (Google Test)
+
+# Tests (GTest)
 include(FetchContent)
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        v1.14.0
+  GIT_TAG v1.14.0
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
-
-add_executable(tests
-  tests/test_tokenizer.cpp
-  tests/test_builtins.cpp
-)
-target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(tests PRIVATE
-  GTest::gtest_main
-  cli_tokenizer
-  cli_builtins
-)
-
-include(CTest)
 enable_testing()
-add_test(NAME UnitTests COMMAND tests)
+
+add_executable(lka_test
+  tests/lexer_test.cpp
+  tests/command_parser_test.cpp
+  tests/command_manager_test.cpp
+  tests/builtins_test.cpp
+  tests/execution_context_test.cpp
+)
+target_link_libraries(lka_test PRIVATE lka_lib GTest::gtest GTest::gtest_main)
+add_test(NAME lka_test COMMAND lka_test)
