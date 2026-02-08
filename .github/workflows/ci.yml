@@ -6,107 +6,306 @@ on:
   pull_request:
     branches: ["**"]
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # Static analysis jobs
   clang-format:
-    name: Clang-format
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Install clang-format
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y clang-format-15
-    
-    - name: Run clang-format
-      run: |
-        find src tests -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' | \
-          xargs clang-format-15 --dry-run -Werror -style=file
-
-  clang-tidy:
-    name: Clang-tidy
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Install clang-tidy
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y clang-tidy-15
-    
-    - name: Run clang-tidy
-      run: |
-        find src tests -name '*.cpp' -o -name '*.c' | \
-          xargs -I {} clang-tidy-15 {} -- -I src -I tests || true
-
-  cppcheck:
-    name: Cppcheck
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Install cppcheck
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y cppcheck
-    
-    - name: Run cppcheck
-      run: |
-        find src -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.h' | \
-        xargs cppcheck \
-          --enable=all \
-          --suppressions-list=cppcheck-suppressions.txt \
-          --inline-suppr \
-          --error-exitcode=1 \
-          --language=c++ \
-          --std=c++23 \
-          -I src -I tests
-
-  build-and-test-ubuntu:
-    name: "Build & Test (Ubuntu)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install build dependencies
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install clang-format
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential
+          sudo apt-get install -y clang-format-19
+      
+      - name: Run clang-format
+        run: |
+          find src tests -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' | \
+            xargs clang-format-19 --dry-run -Werror -style=file
+  
+  clang-tidy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install clang-tidy and dependencies
+        run: |
+          sudo apt-get update
+          # Добавляем репозиторий LLVM для версии 19
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy-19 clang-19 build-essential
+      
+      - name: Generate compilation database
+        run: |
+          cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      
+      - name: Run clang-tidy
+        run: |
+          find src tests -name '*.cpp' -o -name '*.c' | \
+            xargs -I {} clang-tidy-19 {} -- -I src -I tests -I build || true
+  
+  cppcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck
+      
+      - name: Run cppcheck
+        run: |
+          find src -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.h' | \
+          xargs cppcheck \
+            --enable=all \
+            --suppressions-list=cppcheck-suppressions.txt \
+            --inline-suppr \
+            --error-exitcode=1 \
+            --language=c++ \
+            --std=c++23 \
+            -I src -I tests
 
-      - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build
-        run: cmake --build build
-
-      - name: Test
-        run: cmake --build build --target fluffy_tribble_test && (cd build && ctest --output-on-failure)
-
-  build-and-test-macos:
-    name: "Build & Test (macOS)"
-    runs-on: macos-latest
+  # Compilation jobs using matrix strategy
+  compile-run-lin-basic:
+    needs: [clang-format, clang-tidy, cppcheck]
     strategy:
       matrix:
-        build_type: [Release, Debug]
+        compiler:
+          - name: GCC
+            command: g++-14
+            version-flags: --version
+            flags:
+          - name: Clang
+            command: clang++-19
+            version-flags: --version
+            flags: -gdwarf-4
+        sanitize:
+          - name: ", ASan, Debug"
+            flags: -g -fsanitize=undefined -fno-sanitize-recover=all -fsanitize=address -DEXPECT_ASAN
+            run-prefix:
+            cmake-flags: -DCMAKE_BUILD_TYPE=Debug
+    
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install compiler and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential valgrind
+          
+          # Добавляем репозитории для новых версий компиляторов
+          if [ "${{ matrix.compiler.command }}" = "g++-14" ]; then
+            # Для GCC 14
+            sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+            sudo apt-get update
+            sudo apt-get install -y g++-14
+          elif [ "${{ matrix.compiler.command }}" = "clang++-19" ]; then
+            # Для Clang 19
+            wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+            echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+            sudo apt-get update
+            sudo apt-get install -y clang-19 clang-tools-19
+          fi
+      
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            ${{ matrix.sanitize.cmake-flags }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.compiler.command }} \
+            -DCMAKE_CXX_FLAGS="${{ matrix.compiler.flags }} ${{ matrix.sanitize.flags }}"
+      
+      - name: Build
+        run: |
+          cmake --build build --parallel $(nproc)
+      
+      - name: Run tests
+        run: |
+          cd build
+          ${{ matrix.sanitize.run-prefix }} ctest --output-on-failure
+
+  compile-run-lin:
+    needs: [compile-run-lin-basic]
+    strategy:
+      matrix:
+        include:
+          # GCC 14 configurations
+          - compiler_name: GCC
+            compiler_command: g++-14
+            compiler_flags: ""
+            sanitizer_name: ", Valgrind, Debug"
+            sanitizer_flags: -g -fsanitize=undefined -fno-sanitize-recover=all -DEXPECT_VALGRIND
+            run_prefix: valgrind --quiet --leak-check=full --error-exitcode=123
+            cmake_flags: -DCMAKE_BUILD_TYPE=Debug
+          
+          - compiler_name: GCC
+            compiler_command: g++-14
+            compiler_flags: ""
+            sanitizer_name: ", Release"
+            sanitizer_flags: ""
+            run_prefix: ""
+            cmake_flags: -DCMAKE_BUILD_TYPE=Release
+          
+          # Clang 19 with libstdc++ configurations
+          - compiler_name: Clang, libstdc++
+            compiler_command: clang++-19
+            compiler_flags: -gdwarf-4 -stdlib=libstdc++
+            sanitizer_name: ", Valgrind, Debug"
+            sanitizer_flags: -g -fsanitize=undefined -fno-sanitize-recover=all -DEXPECT_VALGRIND
+            run_prefix: valgrind --quiet --leak-check=full --error-exitcode=123
+            cmake_flags: -DCMAKE_BUILD_TYPE=Debug
+          
+          - compiler_name: Clang, libstdc++
+            compiler_command: clang++-19
+            compiler_flags: -gdwarf-4 -stdlib=libstdc++
+            sanitizer_name: ", ASan, Debug"
+            sanitizer_flags: -g -fsanitize=undefined -fno-sanitize-recover=all -fsanitize=address -DEXPECT_ASAN
+            run_prefix: ""
+            cmake_flags: -DCMAKE_BUILD_TYPE=Debug
+          
+          - compiler_name: Clang, libstdc++
+            compiler_command: clang++-19
+            compiler_flags: -gdwarf-4 -stdlib=libstdc++
+            sanitizer_name: ", Release"
+            sanitizer_flags: ""
+            run_prefix: ""
+            cmake_flags: -DCMAKE_BUILD_TYPE=Release
+          
+          # Clang 19 with libc++ configurations
+          - compiler_name: Clang, libc++
+            compiler_command: clang++-19
+            compiler_flags: -gdwarf-4 -stdlib=libc++
+            sanitizer_name: ", Valgrind, Debug"
+            sanitizer_flags: -g -fsanitize=undefined -fno-sanitize-recover=all -DEXPECT_VALGRIND
+            run_prefix: valgrind --quiet --leak-check=full --error-exitcode=123
+            cmake_flags: -DCMAKE_BUILD_TYPE=Debug
+          
+          - compiler_name: Clang, libc++
+            compiler_command: clang++-19
+            compiler_flags: -gdwarf-4 -stdlib=libc++
+            sanitizer_name: ", ASan, Debug"
+            sanitizer_flags: -g -fsanitize=undefined -fno-sanitize-recover=all -fsanitize=address -DEXPECT_ASAN
+            run_prefix: ""
+            cmake_flags: -DCMAKE_BUILD_TYPE=Debug
+          
+          - compiler_name: Clang, libc++
+            compiler_command: clang++-19
+            compiler_flags: -gdwarf-4 -stdlib=libc++
+            sanitizer_name: ", Release"
+            sanitizer_flags: ""
+            run_prefix: ""
+            cmake_flags: -DCMAKE_BUILD_TYPE=Release
+    
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install compiler and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential valgrind
+          
+          # Добавляем репозитории
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update
+          
+          case "${{ matrix.compiler_name }}" in
+            "GCC")
+              sudo apt-get install -y g++-14
+              ;;
+            "Clang, libstdc++"|"Clang, libc++")
+              sudo apt-get install -y clang-19 clang-tools-19
+              if [ "${{ matrix.compiler_name }}" = "Clang, libc++" ]; then
+                sudo apt-get install -y libc++-19-dev libc++abi-19-dev
+              fi
+              ;;
+          esac
+      
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            ${{ matrix.cmake_flags }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.compiler_command }} \
+            -DCMAKE_CXX_FLAGS="${{ matrix.compiler_flags }} ${{ matrix.sanitizer_flags }}"
+      
+      - name: Build
+        run: |
+          cmake --build build --parallel $(nproc)
+      
+      - name: Run tests
+        run: |
+          cd build
+          ${{ matrix.run_prefix }} ctest --output-on-failure
+      
+      - name: Additional sanitizer checks (if applicable)
+        if: ${{ matrix.sanitizer_name != ', Release' && matrix.run_prefix == '' }}
+        run: |
+          cd build
+          # Run individual tests to check for sanitizer issues
+          find . -name "*test*" -type f -executable -exec {} \; || true
+
+  # macOS builds (используем системные версии или устанавливаем новые)
+  compile-run-mac:
+    needs: [compile-run-lin]
+    strategy:
+      matrix:
+        sanitize:
+          - name: ", ASan, Debug"
+            flags: -g -fsanitize=undefined -fno-sanitize-recover=all -fsanitize=address -DEXPECT_ASAN
+            cmake-flags: -DCMAKE_BUILD_TYPE=Debug
+          - name: ", Release"
+            flags:
+            cmake-flags: -DCMAKE_BUILD_TYPE=Release
+    
+    runs-on: macos-latest
+    timeout-minutes: 15
+    
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Install dependencies (macOS)
         run: |
-          brew install cmake
-
-      - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-
+          brew install cmake llvm@19 gcc@14
+          echo "export PATH=/usr/local/opt/llvm@19/bin:$PATH" >> $GITHUB_ENV
+          echo "export PATH=/usr/local/opt/gcc@14/bin:$PATH" >> $GITHUB_ENV
+      
+      - name: Show compiler versions
+        run: |
+          clang++ --version
+          g++-14 --version || true
+      
+      - name: Configure CMake with Clang (macOS system)
+        run: |
+          cmake -B build \
+            ${{ matrix.sanitize.cmake-flags }} \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_CXX_FLAGS="${{ matrix.sanitize.flags }}"
+      
       - name: Build
-        run: cmake --build build
-
+        run: |
+          cmake --build build
+      
       - name: Test
         run: |
           cd build
