@@ -3,84 +3,83 @@
  */
 
 #include "builtins.hpp"
-#include <catch2/catch.hpp>
+#include <gtest/gtest.h>
 #include <cstdio>
 #include <fstream>
 #include <sstream>
 
 using namespace cli;
 
-TEST_CASE("echo prints arguments", "[builtins][echo]") {
+TEST(BuiltinsEchoTest, PrintsArguments) {
   std::ostringstream out, err;
   RunResult r = run_echo({"echo", "hello", "world"}, out, err);
-  REQUIRE(r.exit_code == 0);
-  REQUIRE(!r.exit_shell);
-  REQUIRE(out.str() == "hello world\n");
-  REQUIRE(err.str().empty());
+  EXPECT_EQ(r.exit_code, 0);
+  EXPECT_FALSE(r.exit_shell);
+  EXPECT_EQ(out.str(), "hello world\n");
+  EXPECT_TRUE(err.str().empty());
 }
 
-TEST_CASE("echo single argument", "[builtins][echo]") {
+TEST(BuiltinsEchoTest, SingleArgument) {
   std::ostringstream out, err;
   RunResult r = run_echo({"echo", "x"}, out, err);
-  REQUIRE(r.exit_code == 0);
-  REQUIRE(out.str() == "x\n");
+  EXPECT_EQ(r.exit_code, 0);
+  EXPECT_EQ(out.str(), "x\n");
 }
 
-TEST_CASE("echo no arguments", "[builtins][echo]") {
+TEST(BuiltinsEchoTest, NoArguments) {
   std::ostringstream out, err;
   RunResult r = run_echo({"echo"}, out, err);
-  REQUIRE(r.exit_code == 0);
-  REQUIRE(out.str().empty());
+  EXPECT_EQ(r.exit_code, 0);
+  EXPECT_TRUE(out.str().empty());
 }
 
-TEST_CASE("exit sets exit_shell", "[builtins][exit]") {
+TEST(BuiltinsExitTest, SetsExitShell) {
   std::ostringstream out, err;
   RunResult r = run_exit({"exit"}, out, err);
-  REQUIRE(r.exit_code == 0);
-  REQUIRE(r.exit_shell);
-  REQUIRE(out.str().empty());
+  EXPECT_EQ(r.exit_code, 0);
+  EXPECT_TRUE(r.exit_shell);
+  EXPECT_TRUE(out.str().empty());
 }
 
-TEST_CASE("pwd returns current directory", "[builtins][pwd]") {
+TEST(BuiltinsPwdTest, ReturnsCurrentDirectory) {
   std::ostringstream out, err;
   RunResult r = run_pwd({"pwd"}, out, err);
-  REQUIRE(r.exit_code == 0);
-  REQUIRE(!out.str().empty());
-  REQUIRE(out.str().back() == '\n');
-  REQUIRE(err.str().empty());
+  EXPECT_EQ(r.exit_code, 0);
+  EXPECT_FALSE(out.str().empty());
+  EXPECT_EQ(out.str().back(), '\n');
+  EXPECT_TRUE(err.str().empty());
 }
 
-TEST_CASE("cat missing file", "[builtins][cat]") {
+TEST(BuiltinsCatTest, MissingFile) {
   std::ostringstream out, err;
   RunResult r = run_cat({"cat", "/nonexistent/file"}, out, err);
-  REQUIRE(r.exit_code != 0);
-  REQUIRE(!err.str().empty());
-  REQUIRE(out.str().empty());
+  EXPECT_NE(r.exit_code, 0);
+  EXPECT_FALSE(err.str().empty());
+  EXPECT_TRUE(out.str().empty());
 }
 
-TEST_CASE("cat missing operand", "[builtins][cat]") {
+TEST(BuiltinsCatTest, MissingOperand) {
   std::ostringstream out, err;
   RunResult r = run_cat({"cat"}, out, err);
-  REQUIRE(r.exit_code != 0);
-  REQUIRE(!err.str().empty());
+  EXPECT_NE(r.exit_code, 0);
+  EXPECT_FALSE(err.str().empty());
 }
 
-TEST_CASE("wc missing file", "[builtins][wc]") {
+TEST(BuiltinsWcTest, MissingFile) {
   std::ostringstream out, err;
   RunResult r = run_wc({"wc", "/nonexistent"}, out, err);
-  REQUIRE(r.exit_code != 0);
-  REQUIRE(!err.str().empty());
+  EXPECT_NE(r.exit_code, 0);
+  EXPECT_FALSE(err.str().empty());
 }
 
-TEST_CASE("wc missing operand", "[builtins][wc]") {
+TEST(BuiltinsWcTest, MissingOperand) {
   std::ostringstream out, err;
   RunResult r = run_wc({"wc"}, out, err);
-  REQUIRE(r.exit_code != 0);
-  REQUIRE(!err.str().empty());
+  EXPECT_NE(r.exit_code, 0);
+  EXPECT_FALSE(err.str().empty());
 }
 
-TEST_CASE("cat and wc with real file", "[builtins][cat][wc]") {
-  // Create temp file
+TEST(BuiltinsCatWcTest, CatAndWcWithRealFile) {
   const char* name = "test_builtins_temp.txt";
   {
     std::ofstream f(name);
@@ -89,17 +88,16 @@ TEST_CASE("cat and wc with real file", "[builtins][cat][wc]") {
   std::ostringstream out, err;
 
   RunResult cr = run_cat({"cat", name}, out, err);
-  REQUIRE(cr.exit_code == 0);
-  REQUIRE(out.str() == "one two three\nfour five\n");
+  EXPECT_EQ(cr.exit_code, 0);
+  EXPECT_EQ(out.str(), "one two three\nfour five\n");
   out.str("");
   err.str("");
 
   RunResult wr = run_wc({"wc", name}, out, err);
-  REQUIRE(wr.exit_code == 0);
-  REQUIRE(err.str().empty());
-  // 2 lines, 5 words, 22 bytes (depending on line endings)
-  REQUIRE(out.str().find('2') != std::string::npos);
-  REQUIRE(out.str().find('5') != std::string::npos);
+  EXPECT_EQ(wr.exit_code, 0);
+  EXPECT_TRUE(err.str().empty());
+  EXPECT_NE(out.str().find('2'), std::string::npos);
+  EXPECT_NE(out.str().find('5'), std::string::npos);
 
   std::remove(name);
 }

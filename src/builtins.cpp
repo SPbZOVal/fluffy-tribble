@@ -94,6 +94,7 @@ RunResult run_wc(const std::vector<std::string>& args,
   }
   std::size_t lines = 0;
   std::size_t words = 0;
+  std::size_t bytes = 0;
   countLinesWordsBytes(f, lines, words, bytes);
   out << lines << ' ' << words << ' ' << bytes << '\n';
   return RunResult{0, false};

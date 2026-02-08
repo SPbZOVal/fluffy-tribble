@@ -3,71 +3,71 @@
  */
 
 #include "tokenizer.hpp"
-#include <catch2/catch.hpp>
+#include <gtest/gtest.h>
 
 using namespace cli;
 
-TEST_CASE("Empty line yields empty list", "[tokenizer]") {
-  REQUIRE(tokenize("").empty());
-  REQUIRE(tokenize("   ").empty());
-  REQUIRE(tokenize("\t\n  ").empty());
+TEST(TokenizerTest, EmptyLineYieldsEmptyList) {
+  EXPECT_TRUE(tokenize("").empty());
+  EXPECT_TRUE(tokenize("   ").empty());
+  EXPECT_TRUE(tokenize("\t\n  ").empty());
 }
 
-TEST_CASE("Single word", "[tokenizer]") {
+TEST(TokenizerTest, SingleWord) {
   auto t = tokenize("echo");
-  REQUIRE(t.size() == 1);
-  REQUIRE(t[0] == "echo");
+  ASSERT_EQ(t.size(), 1u);
+  EXPECT_EQ(t[0], "echo");
 }
 
-TEST_CASE("Several words", "[tokenizer]") {
+TEST(TokenizerTest, SeveralWords) {
   auto t = tokenize("echo hello world");
-  REQUIRE(t.size() == 3);
-  REQUIRE(t[0] == "echo");
-  REQUIRE(t[1] == "hello");
-  REQUIRE(t[2] == "world");
+  ASSERT_EQ(t.size(), 3u);
+  EXPECT_EQ(t[0], "echo");
+  EXPECT_EQ(t[1], "hello");
+  EXPECT_EQ(t[2], "world");
 }
 
-TEST_CASE("Double quotes make one argument", "[tokenizer]") {
+TEST(TokenizerTest, DoubleQuotesMakeOneArgument) {
   auto t = tokenize("echo \"hello world\"");
-  REQUIRE(t.size() == 2);
-  REQUIRE(t[0] == "echo");
-  REQUIRE(t[1] == "hello world");
+  ASSERT_EQ(t.size(), 2u);
+  EXPECT_EQ(t[0], "echo");
+  EXPECT_EQ(t[1], "hello world");
 }
 
-TEST_CASE("Single quotes make one argument", "[tokenizer]") {
+TEST(TokenizerTest, SingleQuotesMakeOneArgument) {
   auto t = tokenize("echo 'hello world'");
-  REQUIRE(t.size() == 2);
-  REQUIRE(t[0] == "echo");
-  REQUIRE(t[1] == "hello world");
+  ASSERT_EQ(t.size(), 2u);
+  EXPECT_EQ(t[0], "echo");
+  EXPECT_EQ(t[1], "hello world");
 }
 
-TEST_CASE("Mixed quoted and unquoted", "[tokenizer]") {
+TEST(TokenizerTest, MixedQuotedAndUnquoted) {
   auto t = tokenize("cat \"file name.txt\"");
-  REQUIRE(t.size() == 2);
-  REQUIRE(t[0] == "cat");
-  REQUIRE(t[1] == "file name.txt");
+  ASSERT_EQ(t.size(), 2u);
+  EXPECT_EQ(t[0], "cat");
+  EXPECT_EQ(t[1], "file name.txt");
 }
 
-TEST_CASE("Quoted empty string", "[tokenizer]") {
+TEST(TokenizerTest, QuotedEmptyString) {
   auto t = tokenize("echo \"\"");
-  REQUIRE(t.size() == 2);
-  REQUIRE(t[0] == "echo");
-  REQUIRE(t[1] == "");
+  ASSERT_EQ(t.size(), 2u);
+  EXPECT_EQ(t[0], "echo");
+  EXPECT_EQ(t[1], "");
 }
 
-TEST_CASE("Multiple quoted segments", "[tokenizer]") {
+TEST(TokenizerTest, MultipleQuotedSegments) {
   auto t = tokenize("a \"b c\" d 'e f' g");
-  REQUIRE(t.size() == 5);
-  REQUIRE(t[0] == "a");
-  REQUIRE(t[1] == "b c");
-  REQUIRE(t[2] == "d");
-  REQUIRE(t[3] == "e f");
-  REQUIRE(t[4] == "g");
+  ASSERT_EQ(t.size(), 5u);
+  EXPECT_EQ(t[0], "a");
+  EXPECT_EQ(t[1], "b c");
+  EXPECT_EQ(t[2], "d");
+  EXPECT_EQ(t[3], "e f");
+  EXPECT_EQ(t[4], "g");
 }
 
-TEST_CASE("Leading and trailing spaces", "[tokenizer]") {
+TEST(TokenizerTest, LeadingAndTrailingSpaces) {
   auto t = tokenize("  echo foo  ");
-  REQUIRE(t.size() == 2);
-  REQUIRE(t[0] == "echo");
-  REQUIRE(t[1] == "foo");
+  ASSERT_EQ(t.size(), 2u);
+  EXPECT_EQ(t[0], "echo");
+  EXPECT_EQ(t[1], "foo");
 }
