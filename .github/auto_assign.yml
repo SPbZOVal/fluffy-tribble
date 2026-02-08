@@ -1,0 +1,9 @@
+addReviewers: true
+addAssignees: false
+
+reviewers:
+  - quuger
+  - mrprizmo
+
+numberOfReviewers: 0
+addAssignees: author
