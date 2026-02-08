@@ -1,13 +1,13 @@
 #include "execution_context.hpp"
+#include <unistd.h>
 #include <cerrno>
 #include <cstring>
-#include <unistd.h>
 
 #if !defined(_WIN32) && !defined(_WIN64)
-extern char** environ;
+extern char **environ;
 #endif
 
-namespace lka {
+namespace fluffy_tribble {
 
 namespace {
 
@@ -26,10 +26,12 @@ std::string get_cwd() {
     }
 }
 
-void load_environ(ExecutionContext::EnvMap& out) {
+void load_environ(ExecutionContext::EnvMap &out) {
 #if !defined(_WIN32) && !defined(_WIN64)
-    if (!environ) return;
-    for (char** p = environ; *p; ++p) {
+    if (!environ) {
+        return;
+    }
+    for (char **p = environ; *p; ++p) {
         std::string s(*p);
         auto eq = s.find('=');
         if (eq != std::string::npos) {
@@ -45,15 +47,18 @@ ExecutionContext::ExecutionContext() : cwd_(get_cwd()) {
     load_environ(env_);
 }
 
-ExecutionContext::EnvMap& ExecutionContext::env() {
+ExecutionContext::EnvMap &ExecutionContext::env() {
     return env_;
 }
 
-const ExecutionContext::EnvMap& ExecutionContext::env() const {
+const ExecutionContext::EnvMap &ExecutionContext::env() const {
     return env_;
 }
 
-void ExecutionContext::set_env(const std::string& name, const std::string& value) {
+void ExecutionContext::set_env(
+    const std::string &name,
+    const std::string &value
+) {
     env_[name] = value;
 }
 
@@ -61,7 +66,7 @@ std::string ExecutionContext::cwd() const {
     return cwd_;
 }
 
-void ExecutionContext::set_cwd(const std::string& path) {
+void ExecutionContext::set_cwd(const std::string &path) {
     cwd_ = path;
 }
 
@@ -89,4 +94,4 @@ void ExecutionContext::set_exit_code(int code) {
     exit_code_ = code;
 }
 
-}  // namespace lka
+}  // namespace fluffy_tribble

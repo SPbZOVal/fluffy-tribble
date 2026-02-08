@@ -1,4 +1,4 @@
-# lka — интерпретатор командной строки
+# fluffy_tribble — интерпретатор командной строки
 
 Расширяемый интерпретатор с поддержкой встроенных команд, кавычек, переменных окружения и вызова внешних программ.
 
@@ -17,12 +17,12 @@ cmake ..
 cmake --build .
 ```
 
-Исполняемый файл: `build/lka`.
+Исполняемый файл: `build/fluffy_tribble`.
 
 ## Запуск
 
 ```bash
-./build/lka
+./build/fluffy_tribble
 ```
 
 Запускается цикл Read-Execute-Print: приглашение `$ `, ввод строки, разбор и выполнение команды.
@@ -51,7 +51,7 @@ ctest --output-on-failure
 Или напрямую:
 
 ```bash
-./build/lka_test
+./build/fluffy_tribble_test
 ```
 
 Тесты собраны на Google Test (GTest).

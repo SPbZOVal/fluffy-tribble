@@ -1,8 +1,8 @@
 #include "lexer.hpp"
-#include "token.hpp"
 #include <gtest/gtest.h>
+#include "token.hpp"
 
-namespace lka {
+namespace fluffy_tribble {
 namespace {
 
 TEST(LexerTest, EmptyInput) {
@@ -77,4 +77,4 @@ TEST(LexerTest, AssignOperator) {
 }
 
 }  // namespace
-}  // namespace lka
+}  // namespace fluffy_tribble

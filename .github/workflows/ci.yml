@@ -19,4 +19,4 @@ jobs:
         run: cmake --build build
 
       - name: Test
-        run: cmake --build build --target lka_test && (cd build && ctest --output-on-failure)
+        run: cmake --build build --target fluffy_tribble_test && (cd build && ctest --output-on-failure)

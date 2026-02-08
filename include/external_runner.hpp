@@ -1,15 +1,16 @@
-#ifndef LKA_EXTERNAL_RUNNER_HPP
-#define LKA_EXTERNAL_RUNNER_HPP
+#ifndef fluffy_tribble_EXTERNAL_RUNNER_HPP
+#define fluffy_tribble_EXTERNAL_RUNNER_HPP
 
-#include "execution_context.hpp"
 #include <string>
 #include <vector>
+#include "execution_context.hpp"
 
-namespace lka {
+namespace fluffy_tribble {
 
 /**
  * Запуск внешней программы с заданными аргументами и окружением из контекста.
- * Стандартные потоки процесса наследуются от родителя (stdout/stderr идут в консоль).
+ * Стандартные потоки процесса наследуются от родителя (stdout/stderr идут в
+ * консоль).
  */
 class ExternalRunner {
 public:
@@ -20,11 +21,13 @@ public:
      * @param ctx Контекст (окружение берётся из ctx.env()).
      * @return Код возврата процесса (как от waitpid).
      */
-    static int run(const std::string& name,
-                   const std::vector<std::string>& args,
-                   ExecutionContext& ctx);
+    static int run(
+        const std::string &name,
+        const std::vector<std::string> &args,
+        ExecutionContext &ctx
+    );
 };
 
-}  // namespace lka
+}  // namespace fluffy_tribble
 
-#endif  // LKA_EXTERNAL_RUNNER_HPP
+#endif  // fluffy_tribble_EXTERNAL_RUNNER_HPP

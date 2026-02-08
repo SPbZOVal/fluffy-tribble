@@ -1,15 +1,15 @@
 #include "command_parser.hpp"
-#include "command_manager.hpp"
 #include <string>
+#include "command_manager.hpp"
 
-namespace lka {
+namespace fluffy_tribble {
 
-Pipe CommandParser::parse(const TokenStream& tokens) {
+Pipe CommandParser::parse(const TokenStream &tokens) {
     Pipe pipe;
     std::vector<std::string> words;
 
     for (TokenStream::size_type i = 0; i < tokens.size(); ++i) {
-        const Token& t = tokens[i];
+        const Token &t = tokens[i];
         if (t.type == TokenType::EOF_) {
             break;
         }
@@ -29,7 +29,8 @@ Pipe CommandParser::parse(const TokenStream& tokens) {
             std::string var_name = std::move(words[0]);
             words.erase(words.begin());
             std::string value;
-            if (i + 1 < tokens.size() && tokens[i + 1].type == TokenType::WORD) {
+            if (i + 1 < tokens.size() &&
+                tokens[i + 1].type == TokenType::WORD) {
                 value = tokens[i + 1].value;
                 ++i;
             }
@@ -58,4 +59,4 @@ Pipe CommandParser::parse(const TokenStream& tokens) {
     return pipe;
 }
 
-}  // namespace lka
+}  // namespace fluffy_tribble

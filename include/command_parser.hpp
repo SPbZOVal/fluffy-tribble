@@ -1,11 +1,11 @@
-#ifndef LKA_COMMAND_PARSER_HPP
-#define LKA_COMMAND_PARSER_HPP
+#ifndef fluffy_tribble_COMMAND_PARSER_HPP
+#define fluffy_tribble_COMMAND_PARSER_HPP
 
+#include <vector>
 #include "parsed_command.hpp"
 #include "token.hpp"
-#include <vector>
 
-namespace lka {
+namespace fluffy_tribble {
 
 /**
  * Преобразует поток токенов в пайплайн команд (набор ParsedCommand).
@@ -15,13 +15,14 @@ class CommandParser {
 public:
     /**
      * Разбирает поток токенов в пайплайн.
-     * Пайпы (|) в этой части не обрабатываются — все слова до EOF образуют одну команду.
+     * Пайпы (|) в этой части не обрабатываются — все слова до EOF образуют одну
+     * команду.
      * @param tokens Результат работы лексера (должен заканчиваться EOF_).
      * @return Пайплайн (вектор команд; без пайпов — одна команда).
      */
-    Pipe parse(const TokenStream& tokens);
+    Pipe parse(const TokenStream &tokens);
 };
 
-}  // namespace lka
+}  // namespace fluffy_tribble
 
-#endif  // LKA_COMMAND_PARSER_HPP
+#endif  // fluffy_tribble_COMMAND_PARSER_HPP

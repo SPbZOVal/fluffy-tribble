@@ -1,14 +1,15 @@
-#ifndef LKA_PARSED_COMMAND_HPP
-#define LKA_PARSED_COMMAND_HPP
+#ifndef fluffy_tribble_PARSED_COMMAND_HPP
+#define fluffy_tribble_PARSED_COMMAND_HPP
 
-#include "command_id.hpp"
 #include <string>
 #include <vector>
+#include "command_id.hpp"
 
-namespace lka {
+namespace fluffy_tribble {
 
 /**
- * Одна команда после разбора: имя, аргументы и тип (встроенная/внешняя/присваивание/exit).
+ * Одна команда после разбора: имя, аргументы и тип
+ * (встроенная/внешняя/присваивание/exit).
  */
 struct ParsedCommand {
     /** Имя команды (или имя переменной при присваивании). */
@@ -24,6 +25,6 @@ struct ParsedCommand {
  */
 using Pipe = std::vector<ParsedCommand>;
 
-}  // namespace lka
+}  // namespace fluffy_tribble
 
-#endif  // LKA_PARSED_COMMAND_HPP
+#endif  // fluffy_tribble_PARSED_COMMAND_HPP

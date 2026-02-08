@@ -1,10 +1,10 @@
-#ifndef LKA_EXECUTION_CONTEXT_HPP
-#define LKA_EXECUTION_CONTEXT_HPP
+#ifndef fluffy_tribble_EXECUTION_CONTEXT_HPP
+#define fluffy_tribble_EXECUTION_CONTEXT_HPP
 
 #include <string>
 #include <unordered_map>
 
-namespace lka {
+namespace fluffy_tribble {
 
 /**
  * Глобальное состояние интерпретатора: переменные окружения,
@@ -23,17 +23,17 @@ public:
     /**
      * Возвращает изменяемую ссылку на переменные окружения.
      */
-    EnvMap& env();
+    EnvMap &env();
 
     /**
      * Возвращает константную ссылку на переменные окружения.
      */
-    const EnvMap& env() const;
+    const EnvMap &env() const;
 
     /**
      * Устанавливает переменную окружения name в value.
      */
-    void set_env(const std::string& name, const std::string& value);
+    void set_env(const std::string &name, const std::string &value);
 
     /**
      * Возвращает текущую рабочую директорию.
@@ -43,7 +43,7 @@ public:
     /**
      * Устанавливает текущую рабочую директорию (для согласованности с shell).
      */
-    void set_cwd(const std::string& path);
+    void set_cwd(const std::string &path);
 
     /**
      * Флаг выхода: true после вызова команды exit.
@@ -56,7 +56,8 @@ public:
     void set_exit(bool value);
 
     /**
-     * Код возврата последней команды (для встроенных — по усмотрению, для внешних — их код).
+     * Код возврата последней команды (для встроенных — по усмотрению, для
+     * внешних — их код).
      */
     int last_status() const;
 
@@ -83,6 +84,6 @@ private:
     int exit_code_ = 0;
 };
 
-}  // namespace lka
+}  // namespace fluffy_tribble
 
-#endif  // LKA_EXECUTION_CONTEXT_HPP
+#endif  // fluffy_tribble_EXECUTION_CONTEXT_HPP

@@ -1,14 +1,14 @@
-#include "command_id.hpp"
 #include "command_parser.hpp"
-#include "lexer.hpp"
-#include "parsed_command.hpp"
 #include <gtest/gtest.h>
 #include <string>
+#include "command_id.hpp"
+#include "lexer.hpp"
+#include "parsed_command.hpp"
 
-namespace lka {
+namespace fluffy_tribble {
 namespace {
 
-Pipe parse_line(const std::string& line) {
+Pipe parse_line(const std::string &line) {
     Lexer lexer;
     TokenStream ts = lexer.tokenize(line);
     CommandParser parser;
@@ -72,4 +72,4 @@ TEST(CommandParserTest, ExternalCommand) {
 }
 
 }  // namespace
-}  // namespace lka
+}  // namespace fluffy_tribble

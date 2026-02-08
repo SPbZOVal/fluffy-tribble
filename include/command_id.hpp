@@ -1,7 +1,7 @@
-#ifndef LKA_COMMAND_ID_HPP
-#define LKA_COMMAND_ID_HPP
+#ifndef fluffy_tribble_COMMAND_ID_HPP
+#define fluffy_tribble_COMMAND_ID_HPP
 
-namespace lka {
+namespace fluffy_tribble {
 
 /**
  * Идентификатор типа команды: встроенная (по имени), присваивание,
@@ -18,6 +18,6 @@ enum class CommandID {
     EXTERNAL
 };
 
-}  // namespace lka
+}  // namespace fluffy_tribble
 
-#endif  // LKA_COMMAND_ID_HPP
+#endif  // fluffy_tribble_COMMAND_ID_HPP

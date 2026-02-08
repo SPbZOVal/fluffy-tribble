@@ -1,9 +1,9 @@
-#include "command_id.hpp"
 #include "command_manager.hpp"
 #include <gtest/gtest.h>
 #include <vector>
+#include "command_id.hpp"
 
-namespace lka {
+namespace fluffy_tribble {
 namespace {
 
 TEST(CommandManagerTest, Exit) {
@@ -22,7 +22,9 @@ TEST(CommandManagerTest, Builtins) {
 TEST(CommandManagerTest, External) {
     std::vector<std::string> args;
     EXPECT_EQ(CommandManager::get_command_id("ls", args), CommandID::EXTERNAL);
-    EXPECT_EQ(CommandManager::get_command_id("custom_tool", args), CommandID::EXTERNAL);
+    EXPECT_EQ(
+        CommandManager::get_command_id("custom_tool", args), CommandID::EXTERNAL
+    );
 }
 
 TEST(CommandManagerTest, IsBuiltin) {
@@ -35,4 +37,4 @@ TEST(CommandManagerTest, IsBuiltin) {
 }
 
 }  // namespace
-}  // namespace lka
+}  // namespace fluffy_tribble

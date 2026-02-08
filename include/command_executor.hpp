@@ -1,11 +1,11 @@
-#ifndef LKA_COMMAND_EXECUTOR_HPP
-#define LKA_COMMAND_EXECUTOR_HPP
+#ifndef fluffy_tribble_COMMAND_EXECUTOR_HPP
+#define fluffy_tribble_COMMAND_EXECUTOR_HPP
 
+#include <iosfwd>
 #include "execution_context.hpp"
 #include "parsed_command.hpp"
-#include <iosfwd>
 
-namespace lka {
+namespace fluffy_tribble {
 
 /**
  * Выполняет одну команду: получает реализацию из CommandManager,
@@ -21,13 +21,15 @@ public:
      * @param error Поток ошибок.
      * @param ctx Контекст (окружение, exit-флаг и т.д.).
      */
-    static void execute(const ParsedCommand& cmd,
-                        std::istream& input,
-                        std::ostream& output,
-                        std::ostream& error,
-                        ExecutionContext& ctx);
+    static void execute(
+        const ParsedCommand &cmd,
+        std::istream &input,
+        std::ostream &output,
+        std::ostream &error,
+        ExecutionContext &ctx
+    );
 };
 
-}  // namespace lka
+}  // namespace fluffy_tribble
 
-#endif  // LKA_COMMAND_EXECUTOR_HPP
+#endif  // fluffy_tribble_COMMAND_EXECUTOR_HPP

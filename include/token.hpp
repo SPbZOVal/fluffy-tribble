@@ -1,21 +1,21 @@
-#ifndef LKA_TOKEN_HPP
-#define LKA_TOKEN_HPP
+#ifndef fluffy_tribble_TOKEN_HPP
+#define fluffy_tribble_TOKEN_HPP
 
 #include <string>
 #include <vector>
 
-namespace lka {
+namespace fluffy_tribble {
 
 /** Тип токена, выдаваемого лексером. */
 enum class TokenType {
-    WORD,         ///< Слово (идентификатор или аргумент)
-    QUOTE_SINGLE, ///< Одиночная кавычка '
-    QUOTE_DOUBLE, ///< Двойная кавычка "
-    OP_PIPE,      ///< Оператор пайпа |
-    OP_ASSIGN,    ///< Оператор присваивания =
-    OP_DOLLAR,    ///< Символ переменной $
-    SPECIAL,      ///< Специальный символ
-    EOF_          ///< Конец ввода
+    WORD,          ///< Слово (идентификатор или аргумент)
+    QUOTE_SINGLE,  ///< Одиночная кавычка '
+    QUOTE_DOUBLE,  ///< Двойная кавычка "
+    OP_PIPE,       ///< Оператор пайпа |
+    OP_ASSIGN,     ///< Оператор присваивания =
+    OP_DOLLAR,     ///< Символ переменной $
+    SPECIAL,       ///< Специальный символ
+    EOF_           ///< Конец ввода
 };
 
 /**
@@ -31,6 +31,6 @@ struct Token {
  */
 using TokenStream = std::vector<Token>;
 
-}  // namespace lka
+}  // namespace fluffy_tribble
 
-#endif  // LKA_TOKEN_HPP
+#endif  // fluffy_tribble_TOKEN_HPP

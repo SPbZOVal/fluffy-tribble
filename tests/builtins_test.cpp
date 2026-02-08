@@ -1,9 +1,9 @@
 #include "builtins.hpp"
-#include "execution_context.hpp"
 #include <gtest/gtest.h>
 #include <sstream>
+#include "execution_context.hpp"
 
-namespace lka {
+namespace fluffy_tribble {
 namespace {
 
 TEST(BuiltinsTest, EchoEmpty) {
@@ -74,4 +74,4 @@ TEST(BuiltinsTest, WcStdin) {
 }
 
 }  // namespace
-}  // namespace lka
+}  // namespace fluffy_tribble

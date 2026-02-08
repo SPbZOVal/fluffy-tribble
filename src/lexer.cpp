@@ -1,9 +1,9 @@
 #include "lexer.hpp"
-#include "token.hpp"
 #include <cctype>
 #include <utility>
+#include "token.hpp"
 
-namespace lka {
+namespace fluffy_tribble {
 
 namespace {
 
@@ -13,7 +13,7 @@ bool is_special(char c) {
 
 }  // namespace
 
-TokenStream Lexer::tokenize(const std::string& input) {
+TokenStream Lexer::tokenize(const std::string &input) {
     TokenStream out;
     std::string::size_type i = 0;
     const auto n = input.size();
@@ -32,7 +32,9 @@ TokenStream Lexer::tokenize(const std::string& input) {
             while (i < n && input[i] != '\'') {
                 word += input[i++];
             }
-            if (i < n) ++i;  // skip closing '
+            if (i < n) {
+                ++i;  // skip closing '
+            }
             out.push_back(Token{TokenType::WORD, std::move(word)});
             continue;
         }
@@ -43,7 +45,9 @@ TokenStream Lexer::tokenize(const std::string& input) {
             while (i < n && input[i] != '"') {
                 word += input[i++];
             }
-            if (i < n) ++i;
+            if (i < n) {
+                ++i;
+            }
             out.push_back(Token{TokenType::WORD, std::move(word)});
             continue;
         }
@@ -72,7 +76,8 @@ TokenStream Lexer::tokenize(const std::string& input) {
             continue;
         }
 
-        // WORD: последовательность непробельных символов (не кавычка, не оператор)
+        // WORD: последовательность непробельных символов (не кавычка, не
+        // оператор)
         std::string word;
         while (i < n && !std::isspace(static_cast<unsigned char>(input[i])) &&
                input[i] != '\'' && input[i] != '"' && input[i] != '|' &&
@@ -88,4 +93,4 @@ TokenStream Lexer::tokenize(const std::string& input) {
     return out;
 }
 
-}  // namespace lka
+}  // namespace fluffy_tribble

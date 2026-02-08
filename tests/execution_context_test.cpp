@@ -1,7 +1,7 @@
 #include "execution_context.hpp"
 #include <gtest/gtest.h>
 
-namespace lka {
+namespace fluffy_tribble {
 namespace {
 
 TEST(ExecutionContextTest, Env) {
@@ -43,4 +43,4 @@ TEST(ExecutionContextTest, ExitCode) {
 }
 
 }  // namespace
-}  // namespace lka
+}  // namespace fluffy_tribble
