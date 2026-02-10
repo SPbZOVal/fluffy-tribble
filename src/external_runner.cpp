@@ -8,8 +8,6 @@
 
 #ifdef __linux__
 #include <sys/wait.h>
-#else
-#include <sys/wait.h>
 #endif
 
 namespace fluffy_tribble {

@@ -54,33 +54,20 @@ void CommandManager::register_command(const std::string &name, CommandID id) {
     name_to_id()[to_lower(name)] = id;
 }
 
-void CommandManager::execute(
-    CommandID id,
-    const std::vector<std::string> &args,
-    std::istream &input,
-    std::ostream &output,
-    std::ostream &err,
-    ExecutionContext &ctx
-) {
+CommandManager::CommandFn CommandManager::get_command_fn(CommandID id) {
     switch (id) {
         case CommandID::CAT:
-            run<CommandID::CAT>(args, input, output, err, ctx);
-            break;
+            return &run<CommandID::CAT>;
         case CommandID::ECHO:
-            run<CommandID::ECHO>(args, input, output, err, ctx);
-            break;
+            return &run<CommandID::ECHO>;
         case CommandID::WC:
-            run<CommandID::WC>(args, input, output, err, ctx);
-            break;
+            return &run<CommandID::WC>;
         case CommandID::PWD:
-            run<CommandID::PWD>(args, input, output, err, ctx);
-            break;
+            return &run<CommandID::PWD>;
         case CommandID::EXIT:
-            run<CommandID::EXIT>(args, input, output, err, ctx);
-            break;
-        case CommandID::ASSIGN:
-        case CommandID::EXTERNAL:
-            break;
+            return &run<CommandID::EXIT>;
+        default:
+            return nullptr;
     }
 }
 

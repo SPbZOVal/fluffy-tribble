@@ -10,13 +10,19 @@ namespace fluffy_tribble {
 
 class ExecutionContext;
 
-/**
- * Связывает строковое имя команды с тегом (CommandID).
- * Позволяет получать тег по имени, выполнять команду по тегу,
- * регистрировать команды во время выполнения.
- */
 class CommandManager {
 public:
+    /**
+     * Тип указателя на реализацию команды (run<CommandID>).
+     */
+    using CommandFn = void (*)(
+        const std::vector<std::string> &args,
+        std::istream &input,
+        std::ostream &output,
+        std::ostream &err,
+        ExecutionContext &ctx
+    );
+
     /**
      * Возвращает тег команды по имени.
      * @param name Имя команды.
@@ -32,23 +38,10 @@ public:
     static void register_command(const std::string &name, CommandID id);
 
     /**
-     * Выполняет встроенную команду или exit по тегу.
-     * Для ASSIGN и EXTERNAL не вызывается (обрабатываются исполнителем).
-     * @param id Тег команды (CAT, ECHO, WC, PWD, EXIT).
-     * @param args Аргументы команды.
-     * @param input Входной поток.
-     * @param output Выходной поток.
-     * @param err Поток ошибок.
-     * @param ctx Контекст выполнения.
+     * Возвращает указатель на реализацию команды по тегу.
+     * Для ASSIGN и EXTERNAL возвращает nullptr.
      */
-    static void execute(
-        CommandID id,
-        const std::vector<std::string> &args,
-        std::istream &input,
-        std::ostream &output,
-        std::ostream &err,
-        ExecutionContext &ctx
-    );
+    static CommandFn get_command_fn(CommandID id);
 };
 
 }  // namespace fluffy_tribble
