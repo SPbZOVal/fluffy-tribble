@@ -5,6 +5,9 @@
 #include <iterator>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <cerrno>
+#include <system_error>
 
 #ifdef __linux__
 #include <sys/wait.h>
@@ -56,29 +59,6 @@ std::vector<std::string> env_to_vector(const ExecutionContext::EnvMap &env) {
     return out;
 }
 
-std::vector<char *>
-to_argv(const std::string &path, const std::vector<std::string> &args) {
-    std::vector<char *> argv;
-    argv.reserve(args.size() + 2);
-    argv.push_back(const_cast<char *>(path.c_str()));
-    std::ranges::transform(args, std::back_inserter(argv), [](const auto &a) {
-        return const_cast<char *>(a.c_str());
-    });
-    argv.push_back(nullptr);
-    return argv;
-}
-
-std::vector<char *> to_envp(const std::vector<std::string> &env_vec) {
-    std::vector<char *> envp;
-    envp.reserve(env_vec.size() + 1);
-    std::ranges::transform(
-        env_vec, std::back_inserter(envp),
-        [](const auto &e) { return const_cast<char *>(e.c_str()); }
-    );
-    envp.push_back(nullptr);
-    return envp;
-}
-
 }  // namespace
 
 int ExternalRunner::run(
@@ -88,8 +68,27 @@ int ExternalRunner::run(
 ) {
     std::string path = find_in_path(name, ctx);
     std::vector<std::string> env_vec = env_to_vector(ctx.env());
-    std::vector<char *> argv = to_argv(path, args);
-    std::vector<char *> envp = to_envp(env_vec);
+    std::vector<std::string> argv_strings;
+    
+    if (!args.empty()) {
+        argv_strings = args;
+    } else {
+        argv_strings.push_back(path);
+    }
+    
+    std::vector<char *> argv;
+    argv.reserve(argv_strings.size() + 1);
+    for (auto &s : argv_strings) {
+        argv.push_back(const_cast<char *>(s.c_str()));
+    }
+    argv.push_back(nullptr);
+    
+    std::vector<char *> envp;
+    envp.reserve(env_vec.size() + 1);
+    for (auto &s : env_vec) {
+        envp.push_back(const_cast<char *>(s.c_str()));
+    }
+    envp.push_back(nullptr);
 
     pid_t pid = fork();
     if (pid < 0) {
@@ -97,7 +96,18 @@ int ExternalRunner::run(
     }
     if (pid == 0) {
         execve(path.c_str(), argv.data(), envp.data());
-        _exit(127);
+        
+        int err = errno;
+        std::error_code ec(err, std::system_category());
+        std::cerr << ec.message() << '\n';
+        
+        if (err == ENOENT) {
+            _exit(127);
+        } else if (err == EACCES) {
+            _exit(126);
+        } else {
+            _exit(1);
+        }
     }
     int status = 0;
     if (waitpid(pid, &status, 0) != pid) {

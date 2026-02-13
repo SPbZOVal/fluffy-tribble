@@ -15,6 +15,7 @@ add_library(fluffy_tribble_lib
   src/builtins.cpp
   src/external_runner.cpp
   src/command_executor.cpp
+  src/pipe_executor.cpp
 )
 target_include_directories(fluffy_tribble_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
@@ -40,6 +41,7 @@ add_executable(fluffy_tribble_test
   tests/command_manager_test.cpp
   tests/builtins_test.cpp
   tests/execution_context_test.cpp
+  tests/pipe_test.cpp
 )
 target_link_libraries(fluffy_tribble_test PRIVATE fluffy_tribble_lib GTest::gtest GTest::gtest_main)
 add_test(NAME fluffy_tribble_test COMMAND fluffy_tribble_test)

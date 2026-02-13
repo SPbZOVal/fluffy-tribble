@@ -9,16 +9,74 @@ namespace {
 
 constexpr bool is_special_char(char c) {
     return c == ' ' || c == '|' || c == '$' || c == '"' || c == '\'' ||
-           c == '\\';
+           c == '\\' || c == '=';
 }
 
 constexpr bool is_dq_escape(char c) {
-    return c == '$' || c == '`' || c == '"' || c == '\\' || c == '\n';
+    return c == '$' || c == '`' || c == '"' || c == '\\' || c == 'n';
+}
+
+void handle_escape(char c, bool in_double, std::string &word) {
+    if (in_double) {
+        if (is_dq_escape(c)) {
+            if (c == 'n') {
+                word += '\n';
+            } else {
+                word += c;
+            }
+        } else {
+            word += '\\';
+            word += c;
+        }
+    } else {
+        word += c;
+    }
+}
+
+std::size_t handle_dollar(
+    const std::string &input,
+    std::size_t i,
+    bool in_double,
+    std::string &word,
+    TokenStream &out,
+    ExecutionContext &ctx,
+    const auto &flush_word
+) {
+    if (i + 1 < input.size() && 
+        (std::isalnum(static_cast<unsigned char>(input[i + 1])) || input[i + 1] == '_')) {
+        
+        std::string var_name;
+        std::size_t j = i + 1;
+        while (j < input.size() && 
+               (std::isalnum(static_cast<unsigned char>(input[j])) || input[j] == '_')) {
+            var_name += input[j];
+            ++j;
+        }
+        
+        bool is_assignment = (j < input.size() && input[j] == '=' && !in_double);
+        
+        if (is_assignment) {
+            flush_word();
+            out.push_back(Token{.type = TokenType::OP_DOLLAR, .value = "$"});
+            return i;
+        } else {
+            auto it = ctx.env().find(var_name);
+            if (it != ctx.env().end()) {
+                word += it->second;
+            }
+            return j - 1;
+        }
+    } else if (!in_double) {
+        flush_word();
+        out.push_back(Token{.type = TokenType::OP_DOLLAR, .value = "$"});
+    }
+    
+    return i;
 }
 
 }  // namespace
 
-TokenStream Lexer::tokenize(const std::string &input) {
+TokenStream Lexer::tokenize(const std::string &input, ExecutionContext &ctx) {
     TokenStream out;
     std::string word;
     bool in_single = false;
@@ -34,30 +92,26 @@ TokenStream Lexer::tokenize(const std::string &input) {
         }
     };
 
-    for (std::string::size_type i = 0; i <= input.size(); ++i) {
+    for (std::size_t i = 0; i <= input.size(); ++i) {
         const char c = (i < input.size()) ? input[i] : '\0';
 
         if (escaping) {
-            if (in_double) {
-                if (!is_dq_escape(c)) {
-                    word += '\\';
-                }
-                word += c;
-            } else {
-                word += c;
-            }
+            handle_escape(c, in_double, word);
             escaping = false;
             continue;
         }
 
         if (c == '\\') {
-            const bool do_escape =
-                in_double || (i + 1 < input.size() &&
-                              is_special_char(input[i + 1]) && !in_single);
-            if (do_escape) {
+            if (in_single) {
+                word += c;
+            } else if (in_double) {
                 escaping = true;
             } else {
-                word += c;
+                if (i + 1 < input.size() && is_special_char(input[i + 1])) {
+                    escaping = true;
+                } else {
+                    word += c;
+                }
             }
             continue;
         }
@@ -69,6 +123,11 @@ TokenStream Lexer::tokenize(const std::string &input) {
 
         if (c == '"' && !in_single) {
             in_double = !in_double;
+            continue;
+        }
+
+        if (c == '$' && !in_single) {
+            i = handle_dollar(input, i, in_double, word, out, ctx, flush_word);
             continue;
         }
 
@@ -84,14 +143,7 @@ TokenStream Lexer::tokenize(const std::string &input) {
             continue;
         }
 
-        if (c == '$' && !in_single && !in_double) {
-            flush_word();
-            out.push_back(Token{.type = TokenType::OP_DOLLAR, .value = "$"});
-            continue;
-        }
-
-        if (std::isspace(static_cast<unsigned char>(c)) && !in_single &&
-            !in_double) {
+        if ((std::isspace(static_cast<unsigned char>(c)) != 0) && !in_single && !in_double) {
             flush_word();
             continue;
         }
@@ -105,6 +157,7 @@ TokenStream Lexer::tokenize(const std::string &input) {
     }
 
     out.push_back(Token{.type = TokenType::EOF_, .value = ""});
+    
     return out;
 }
 
