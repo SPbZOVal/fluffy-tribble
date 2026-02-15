@@ -1,13 +1,13 @@
 #include "external_runner.hpp"
 #include <unistd.h>
 #include <algorithm>
+#include <cerrno>
 #include <cstring>
+#include <iostream>
 #include <iterator>
 #include <string>
-#include <vector>
-#include <iostream>
-#include <cerrno>
 #include <system_error>
+#include <vector>
 
 #ifdef __linux__
 #include <sys/wait.h>
@@ -69,20 +69,20 @@ int ExternalRunner::run(
     std::string path = find_in_path(name, ctx);
     std::vector<std::string> env_vec = env_to_vector(ctx.env());
     std::vector<std::string> argv_strings;
-    
+
     if (!args.empty()) {
         argv_strings = args;
     } else {
         argv_strings.push_back(path);
     }
-    
+
     std::vector<char *> argv;
     argv.reserve(argv_strings.size() + 1);
     for (auto &s : argv_strings) {
         argv.push_back(const_cast<char *>(s.c_str()));
     }
     argv.push_back(nullptr);
-    
+
     std::vector<char *> envp;
     envp.reserve(env_vec.size() + 1);
     for (auto &s : env_vec) {
@@ -96,11 +96,11 @@ int ExternalRunner::run(
     }
     if (pid == 0) {
         execve(path.c_str(), argv.data(), envp.data());
-        
+
         int err = errno;
         std::error_code ec(err, std::system_category());
         std::cerr << ec.message() << '\n';
-        
+
         if (err == ENOENT) {
             _exit(127);
         } else if (err == EACCES) {

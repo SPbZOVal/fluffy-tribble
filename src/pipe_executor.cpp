@@ -1,7 +1,6 @@
 #include "pipe_executor.hpp"
-#include "command_executor.hpp"
 #include <sstream>
-#include <memory>
+#include "command_executor.hpp"
 
 namespace fluffy_tribble {
 
@@ -21,7 +20,7 @@ void PipeExecutor::execute(
         return;
     }
 
-    std::unique_ptr<std::istringstream> current_input;
+    std::istringstream current_input;
     std::ostringstream current_output;
 
     for (std::size_t i = 0; i < pipe.size(); ++i) {
@@ -30,13 +29,13 @@ void PipeExecutor::execute(
         }
 
         const ParsedCommand &cmd = pipe[i];
-        std::istream *in = (i == 0) ? &input : current_input.get();
-        std::ostream *out = (i == pipe.size() - 1) ? &output : &current_output;
-        CommandExecutor::execute(cmd, *in, *out, error, ctx);
+        auto &in = i == 0 ? input : current_input;
+        auto &out = i == pipe.size() - 1 ? output : current_output;
+        CommandExecutor::execute(cmd, in, out, error, ctx);
 
         if (i < pipe.size() - 1) {
-            current_input = std::make_unique<std::istringstream>(current_output.str());
-            
+            current_input = std::istringstream(current_output.str());
+
             current_output.str("");
             current_output.clear();
         }

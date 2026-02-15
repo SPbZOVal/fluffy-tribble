@@ -1,8 +1,8 @@
 #ifndef fluffy_tribble_LEXER_HPP
 #define fluffy_tribble_LEXER_HPP
 
-#include "token.hpp"
 #include "execution_context.hpp"
+#include "token.hpp"
 
 namespace fluffy_tribble {
 

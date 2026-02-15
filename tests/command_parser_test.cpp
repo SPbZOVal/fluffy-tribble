@@ -74,6 +74,17 @@ TEST(CommandParserTest, ExternalCommand) {
     EXPECT_EQ(pipe[0].id, CommandID::EXTERNAL);
 }
 
+TEST(CommandParserTest, ExternalCommandWithWierdArgs) {
+    Pipe pipe = parse_line("g++ -std=c++20 main.cpp");
+    ASSERT_EQ(pipe.size(), 1U);
+    EXPECT_EQ(pipe[0].name, "g++");
+    ASSERT_EQ(pipe[0].args.size(), 3U);
+    EXPECT_EQ(pipe[0].args[0], "g++");
+    EXPECT_EQ(pipe[0].args[1], "-std=c++20");
+    EXPECT_EQ(pipe[0].args[2], "main.cpp");
+    EXPECT_EQ(pipe[0].id, CommandID::EXTERNAL);
+}
+
 TEST(CommandParserTest, SimplePipe) {
     Pipe pipe = parse_line("echo hello | cat");
     ASSERT_EQ(pipe.size(), 2U);

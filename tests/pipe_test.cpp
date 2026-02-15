@@ -15,21 +15,23 @@ TEST(PipeTest, BasicPipelineExecution) {
     std::istringstream in;
     std::ostringstream out;
     std::ostringstream err;
-    
+
     auto tokens1 = lexer.tokenize("echo hello | cat", ctx);
     auto pipe1 = parser.parse(tokens1);
     ASSERT_EQ(pipe1.size(), 2U);
     PipeExecutor::execute(pipe1, in, out, err, ctx);
     EXPECT_EQ(out.str(), "hello\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     auto tokens2 = lexer.tokenize("echo 'line one' | cat | cat", ctx);
     auto pipe2 = parser.parse(tokens2);
     ASSERT_EQ(pipe2.size(), 3U);
     PipeExecutor::execute(pipe2, in, out, err, ctx);
     EXPECT_EQ(out.str(), "line one\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     auto tokens3 = lexer.tokenize("echo 'one two three' | wc", ctx);
     auto pipe3 = parser.parse(tokens3);
     PipeExecutor::execute(pipe3, in, out, err, ctx);
@@ -42,26 +44,28 @@ TEST(PipeTest, VariableExpansionInPipes) {
     ctx.set_env("NAME", "World");
     ctx.set_env("CMD", "ec");
     ctx.set_env("HO", "ho");
-    
+
     Lexer lexer;
     CommandParser parser;
     std::istringstream in;
     std::ostringstream out;
     std::ostringstream err;
-    
+
     auto tokens1 = lexer.tokenize("echo $GREETING", ctx);
     auto pipe1 = parser.parse(tokens1);
     PipeExecutor::execute(pipe1, in, out, err, ctx);
     EXPECT_EQ(out.str(), "Hello\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     auto tokens2 = lexer.tokenize("$CMD$HO hello", ctx);
     auto pipe2 = parser.parse(tokens2);
     ASSERT_EQ(pipe2[0].name, "echo");
     PipeExecutor::execute(pipe2, in, out, err, ctx);
     EXPECT_EQ(out.str(), "hello\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     ctx.set_env("A", "hel");
     ctx.set_env("B", "lo");
     ctx.set_env("C", " wor");
@@ -75,49 +79,55 @@ TEST(PipeTest, VariableExpansionInPipes) {
 TEST(PipeTest, QuotingAndEscapingBehavior) {
     ExecutionContext ctx;
     ctx.set_env("VAR", "test");
-    
+
     Lexer lexer;
     CommandParser parser;
     std::istringstream in;
     std::ostringstream out;
     std::ostringstream err;
-    
+
     auto tokens1 = lexer.tokenize("echo '$VAR'", ctx);
     auto pipe1 = parser.parse(tokens1);
     PipeExecutor::execute(pipe1, in, out, err, ctx);
     EXPECT_EQ(out.str(), "$VAR\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     auto tokens2 = lexer.tokenize("echo \"$VAR\"", ctx);
     auto pipe2 = parser.parse(tokens2);
     PipeExecutor::execute(pipe2, in, out, err, ctx);
     EXPECT_EQ(out.str(), "test\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     auto tokens3 = lexer.tokenize(R"(echo "\$VAR")", ctx);
     auto pipe3 = parser.parse(tokens3);
     PipeExecutor::execute(pipe3, in, out, err, ctx);
     EXPECT_EQ(out.str(), "$VAR\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     auto tokens4 = lexer.tokenize(R"(echo "Say \"hello\"")", ctx);
     auto pipe4 = parser.parse(tokens4);
     PipeExecutor::execute(pipe4, in, out, err, ctx);
     EXPECT_EQ(out.str(), "Say \"hello\"\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     auto tokens5 = lexer.tokenize("echo 'test\\nvalue'", ctx);
     auto pipe5 = parser.parse(tokens5);
     PipeExecutor::execute(pipe5, in, out, err, ctx);
     EXPECT_EQ(out.str(), "test\\nvalue\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     auto tokens6 = lexer.tokenize("echo one\\ two\\ three", ctx);
     auto pipe6 = parser.parse(tokens6);
     PipeExecutor::execute(pipe6, in, out, err, ctx);
     EXPECT_EQ(out.str(), "one two three\n");
-    out.str(""); out.clear();
-    
+    out.str("");
+    out.clear();
+
     auto tokens7 = lexer.tokenize("echo '$VAR' \"$VAR\"", ctx);
     auto pipe7 = parser.parse(tokens7);
     PipeExecutor::execute(pipe7, in, out, err, ctx);
@@ -128,20 +138,20 @@ TEST(PipeTest, AssignmentAndExit) {
     ExecutionContext ctx;
     ctx.set_env("x", "ex");
     ctx.set_env("y", "it");
-    
+
     Lexer lexer;
     CommandParser parser;
     std::istringstream in;
     std::ostringstream out;
     std::ostringstream err;
-    
+
     auto tokens = lexer.tokenize("$x$y", ctx);
     auto pipe = parser.parse(tokens);
-    
+
     ASSERT_EQ(pipe.size(), 1U);
     EXPECT_EQ(pipe[0].name, "exit");
     EXPECT_EQ(pipe[0].id, CommandID::EXIT);
-    
+
     PipeExecutor::execute(pipe, in, out, err, ctx);
     EXPECT_TRUE(ctx.is_exit());
 }

@@ -42,19 +42,21 @@ std::size_t handle_dollar(
     ExecutionContext &ctx,
     const auto &flush_word
 ) {
-    if (i + 1 < input.size() && 
-        (std::isalnum(static_cast<unsigned char>(input[i + 1])) || input[i + 1] == '_')) {
-        
+    if (i + 1 < input.size() &&
+        (std::isalnum(static_cast<unsigned char>(input[i + 1])) ||
+         input[i + 1] == '_')) {
         std::string var_name;
         std::size_t j = i + 1;
-        while (j < input.size() && 
-               (std::isalnum(static_cast<unsigned char>(input[j])) || input[j] == '_')) {
+        while (j < input.size() &&
+               (std::isalnum(static_cast<unsigned char>(input[j])) ||
+                input[j] == '_')) {
             var_name += input[j];
             ++j;
         }
-        
-        bool is_assignment = (j < input.size() && input[j] == '=' && !in_double);
-        
+
+        bool is_assignment =
+            (j < input.size() && input[j] == '=' && !in_double);
+
         if (is_assignment) {
             flush_word();
             out.push_back(Token{.type = TokenType::OP_DOLLAR, .value = "$"});
@@ -70,7 +72,7 @@ std::size_t handle_dollar(
         flush_word();
         out.push_back(Token{.type = TokenType::OP_DOLLAR, .value = "$"});
     }
-    
+
     return i;
 }
 
@@ -143,7 +145,8 @@ TokenStream Lexer::tokenize(const std::string &input, ExecutionContext &ctx) {
             continue;
         }
 
-        if ((std::isspace(static_cast<unsigned char>(c)) != 0) && !in_single && !in_double) {
+        if ((std::isspace(static_cast<unsigned char>(c)) != 0) && !in_single &&
+            !in_double) {
             flush_word();
             continue;
         }
@@ -157,7 +160,7 @@ TokenStream Lexer::tokenize(const std::string &input, ExecutionContext &ctx) {
     }
 
     out.push_back(Token{.type = TokenType::EOF_, .value = ""});
-    
+
     return out;
 }
 
