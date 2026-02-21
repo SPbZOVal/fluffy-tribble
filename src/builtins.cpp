@@ -1,4 +1,5 @@
 #include "builtins.hpp"
+#include <argparse/argparse.hpp>
 #include <fstream>
 #include <sstream>
 
@@ -87,6 +88,16 @@ void run<CommandID::PWD>(
     ExecutionContext &ctx
 ) {
     output << ctx.cwd() << '\n';
+}
+
+template <>
+void run<CommandID::GREP>(
+    const std::vector<std::string> &args,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
+    ExecutionContext &ctx
+) {
 }
 
 template <>
