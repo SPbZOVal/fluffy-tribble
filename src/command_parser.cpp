@@ -1,6 +1,7 @@
 #include "command_parser.hpp"
 #include <string>
 #include "command_manager.hpp"
+#include "token.hpp"
 
 namespace fluffy_tribble {
 
@@ -48,6 +49,15 @@ Pipe CommandParser::parse(const TokenStream &tokens) {
             continue;
         }
         if (t.type == TokenType::WORD) {
+            if (i + 2 < tokens.size() &&
+                tokens[i + 1].type == TokenType::OP_ASSIGN &&
+                tokens[i + 2].type == TokenType::WORD) {
+                words.push_back(
+                    tokens[i].value + tokens[i + 1].value + tokens[i + 2].value
+                );
+                i += 2;
+                continue;
+            }
             words.push_back(t.value);
         }
     }

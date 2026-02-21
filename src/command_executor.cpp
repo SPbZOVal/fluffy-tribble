@@ -19,7 +19,9 @@ void CommandExecutor::execute(
             break;
         }
         case CommandID::EXTERNAL: {
-            int status = ExternalRunner::run(cmd.name, cmd.args, ctx);
+            int status = ExternalRunner::run(
+                cmd.name, cmd.args, input, output, error, ctx
+            );
             ctx.set_last_status(status);
             break;
         }

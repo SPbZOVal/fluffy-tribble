@@ -73,5 +73,45 @@ TEST(BuiltinsTest, WcStdin) {
     EXPECT_EQ(out.str(), "2 3 14\n");
 }
 
+TEST(BuiltinsTest, EchoNoNewlineAfterEmpty) {
+    ExecutionContext ctx;
+    std::istringstream in;
+    std::ostringstream out, err;
+    run<CommandID::ECHO>({}, in, out, err, ctx);
+    EXPECT_EQ(out.str(), "\n");
+}
+
+TEST(BuiltinsTest, CatEmptyInput) {
+    ExecutionContext ctx;
+    std::istringstream in("");
+    std::ostringstream out, err;
+    run<CommandID::CAT>({}, in, out, err, ctx);
+    EXPECT_EQ(out.str(), "");
+}
+
+TEST(BuiltinsTest, WcEmptyInput) {
+    ExecutionContext ctx;
+    std::istringstream in("");
+    std::ostringstream out, err;
+    run<CommandID::WC>({}, in, out, err, ctx);
+    EXPECT_EQ(out.str(), "0 0 0\n");
+}
+
+TEST(BuiltinsTest, ExitInvalidCode) {
+    ExecutionContext ctx;
+    std::istringstream in;
+    std::ostringstream out, err;
+    run<CommandID::EXIT>({"abc"}, in, out, err, ctx);
+    EXPECT_TRUE(ctx.is_exit());
+}
+
+TEST(BuiltinsTest, ExitNegativeCode) {
+    ExecutionContext ctx;
+    std::istringstream in;
+    std::ostringstream out, err;
+    run<CommandID::EXIT>({"-1"}, in, out, err, ctx);
+    EXPECT_TRUE(ctx.is_exit());
+}
+
 }  // namespace
 }  // namespace fluffy_tribble

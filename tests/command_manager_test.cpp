@@ -28,5 +28,36 @@ TEST(CommandManagerTest, RegisterCommand) {
     EXPECT_EQ(CommandManager::get_command_id("list"), CommandID::CAT);
 }
 
+TEST(CommandManagerTest, ErrorUnknownCommand) {
+    // Unknown command should return EXTERNAL
+    EXPECT_EQ(
+        CommandManager::get_command_id("unknown_cmd_xyz"), CommandID::EXTERNAL
+    );
+}
+
+TEST(CommandManagerTest, ErrorEmptyCommandName) {
+    // Empty string should return EXTERNAL
+    EXPECT_EQ(CommandManager::get_command_id(""), CommandID::EXTERNAL);
+}
+
+TEST(CommandManagerTest, ErrorWhitespaceCommand) {
+    // Whitespace should return EXTERNAL
+    EXPECT_EQ(CommandManager::get_command_id("   "), CommandID::EXTERNAL);
+}
+
+TEST(CommandManagerTest, ErrorDuplicateRegister) {
+    // Registering same name twice should use latest
+    CommandManager::register_command("test_cmd", CommandID::CAT);
+    EXPECT_EQ(CommandManager::get_command_id("test_cmd"), CommandID::CAT);
+    CommandManager::register_command("test_cmd", CommandID::ECHO);
+    EXPECT_EQ(CommandManager::get_command_id("test_cmd"), CommandID::ECHO);
+}
+
+TEST(CommandManagerTest, ErrorNullptr) {
+    // Getting function pointer for unknown command
+    auto fn = CommandManager::get_command_fn(CommandID::EXTERNAL);
+    EXPECT_EQ(fn, nullptr);
+}
+
 }  // namespace
 }  // namespace fluffy_tribble
