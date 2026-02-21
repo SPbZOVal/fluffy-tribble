@@ -60,7 +60,7 @@ std::vector<std::string> env_to_vector(const ExecutionContext::EnvMap &env) {
     return out;
 }
 
-int get_fd_from_stream(std::ios &stream) {
+int get_fd_from_stream(const std::ios &stream) {
     if (&stream == &std::cin) {
         return STDIN_FILENO;
     }
