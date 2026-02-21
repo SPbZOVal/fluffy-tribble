@@ -156,5 +156,58 @@ TEST(PipeTest, AssignmentAndExit) {
     EXPECT_TRUE(ctx.is_exit());
 }
 
+TEST(PipeTest, ErrorUnclosedQuoteInPipe) {
+    ExecutionContext ctx;
+    Lexer lexer;
+
+    EXPECT_THROW(
+        lexer.tokenize("echo 'hello | cat", ctx),
+        std::runtime_error
+    );
+}
+
+TEST(PipeTest, EmptyPipe) {
+    ExecutionContext ctx;
+    std::istringstream in;
+    std::ostringstream out;
+    std::ostringstream err;
+
+    Pipe empty_pipe;
+    PipeExecutor::execute(empty_pipe, in, out, err, ctx);
+    EXPECT_EQ(out.str(), "");
+}
+
+TEST(PipeTest, PipeWithMultipleExternalCommands) {
+    ExecutionContext ctx;
+    Lexer lexer;
+    CommandParser parser;
+    std::istringstream in;
+    std::ostringstream out;
+    std::ostringstream err;
+
+    auto tokens = lexer.tokenize("echo 'test line' | cat | wc", ctx);
+    auto pipe = parser.parse(tokens);
+    ASSERT_EQ(pipe.size(), 3U);
+    PipeExecutor::execute(pipe, in, out, err, ctx);
+    EXPECT_EQ(out.str(), "1 2 10\n");
+}
+
+TEST(PipeTest, AssignmentInPipe) {
+    ExecutionContext ctx;
+    ctx.set_env("VAR", "test");
+    Lexer lexer;
+    CommandParser parser;
+    std::istringstream in;
+    std::ostringstream out;
+    std::ostringstream err;
+
+    auto tokens = lexer.tokenize("$VAR=newvalue", ctx);
+    auto pipe = parser.parse(tokens);
+    ASSERT_EQ(pipe.size(), 1U);
+    EXPECT_EQ(pipe[0].id, CommandID::ASSIGN);
+    PipeExecutor::execute(pipe, in, out, err, ctx);
+    EXPECT_EQ(ctx.env().at("VAR"), "newvalue");
+}
+
 }  // namespace
 }  // namespace fluffy_tribble

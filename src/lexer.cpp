@@ -1,5 +1,6 @@
 #include "lexer.hpp"
 #include <cctype>
+#include <stdexcept>
 #include <utility>
 #include "token.hpp"
 
@@ -157,6 +158,13 @@ TokenStream Lexer::tokenize(const std::string &input, ExecutionContext &ctx) {
         }
 
         word += c;
+    }
+
+    if (in_single) {
+        throw std::runtime_error("Unclosed single quote");
+    }
+    if (in_double) {
+        throw std::runtime_error("Unclosed double quote");
     }
 
     out.push_back(Token{.type = TokenType::EOF_, .value = ""});

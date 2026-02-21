@@ -23,6 +23,9 @@ target_include_directories(fluffy_tribble_lib PUBLIC ${CMAKE_SOURCE_DIR}/include
 add_executable(fluffy_tribble src/main.cpp)
 target_link_libraries(fluffy_tribble PRIVATE fluffy_tribble_lib)
 
+find_package(Threads REQUIRED)
+target_link_libraries(fluffy_tribble_lib PUBLIC Threads::Threads)
+target_link_libraries(fluffy_tribble PRIVATE Threads::Threads)
 
 # Tests (GTest)
 include(FetchContent)

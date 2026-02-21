@@ -111,5 +111,55 @@ TEST(LexerTest, Operators) {
     EXPECT_EQ(ts3[3].value, "value");
 }
 
+TEST(LexerTest, QuotedCharacters) {
+    ExecutionContext ctx;
+    Lexer lexer;
+
+    auto ts1 = lexer.tokenize("echo \"'\"", ctx);
+    ASSERT_GE(ts1.size(), 2U);
+    EXPECT_EQ(ts1[0].value, "echo");
+    EXPECT_EQ(ts1[1].value, "'");
+
+    auto ts2 = lexer.tokenize("echo '\"'", ctx);
+    ASSERT_GE(ts2.size(), 2U);
+    EXPECT_EQ(ts2[0].value, "echo");
+    EXPECT_EQ(ts2[1].value, "\"");
+}
+
+TEST(LexerTest, UnclosedQuotes) {
+    ExecutionContext ctx;
+    Lexer lexer;
+
+    EXPECT_THROW(
+        lexer.tokenize("echo '", ctx),
+        std::runtime_error
+    );
+
+    EXPECT_THROW(
+        lexer.tokenize("echo \"", ctx),
+        std::runtime_error
+    );
+}
+
+TEST(LexerTest, UnclosedQuotesMultiple) {
+    ExecutionContext ctx;
+    Lexer lexer;
+
+    EXPECT_THROW(
+        lexer.tokenize("echo \"hello 'world", ctx),
+        std::runtime_error
+    );
+
+    EXPECT_THROW(
+        lexer.tokenize("echo \"hello world", ctx),
+        std::runtime_error
+    );
+
+    EXPECT_THROW(
+        lexer.tokenize("echo \"hello 'world", ctx),
+        std::runtime_error
+    );
+}
+
 }  // namespace
 }  // namespace fluffy_tribble

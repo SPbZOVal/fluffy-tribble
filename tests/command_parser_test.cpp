@@ -100,5 +100,31 @@ TEST(CommandParserTest, MultiPipe) {
     EXPECT_EQ(pipe[2].name, "wc");
 }
 
+TEST(CommandParserTest, ErrorUnclosedQuote) {
+    EXPECT_THROW(
+        parse_line("echo 'unclosed"),
+        std::runtime_error
+    );
+}
+
+TEST(CommandParserTest, ErrorEmptyAssignment) {
+    Pipe pipe = parse_line("$VAR=");
+    ASSERT_EQ(pipe.size(), 1U);
+    EXPECT_EQ(pipe[0].id, CommandID::ASSIGN);
+    EXPECT_EQ(pipe[0].args.size(), 1U);
+    EXPECT_EQ(pipe[0].args[0], "");
+}
+
+TEST(CommandParserTest, ErrorMissingCommand) {
+    Pipe pipe = parse_line("|");
+    EXPECT_TRUE(pipe.empty());
+}
+
+TEST(CommandParserTest, ErrorConsecutivePipes) {
+    Pipe pipe = parse_line("echo test ||");
+    EXPECT_GE(pipe.size(), 1U);
+    EXPECT_EQ(pipe[0].name, "echo");
+}
+
 }  // namespace
 }  // namespace fluffy_tribble
