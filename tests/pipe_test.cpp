@@ -160,10 +160,7 @@ TEST(PipeTest, ErrorUnclosedQuoteInPipe) {
     ExecutionContext ctx;
     Lexer lexer;
 
-    EXPECT_THROW(
-        lexer.tokenize("echo 'hello | cat", ctx),
-        std::runtime_error
-    );
+    EXPECT_THROW(lexer.tokenize("echo 'hello | cat", ctx), std::runtime_error);
 }
 
 TEST(PipeTest, EmptyPipe) {

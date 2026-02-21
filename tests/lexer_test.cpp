@@ -130,15 +130,9 @@ TEST(LexerTest, UnclosedQuotes) {
     ExecutionContext ctx;
     Lexer lexer;
 
-    EXPECT_THROW(
-        lexer.tokenize("echo '", ctx),
-        std::runtime_error
-    );
+    EXPECT_THROW(lexer.tokenize("echo '", ctx), std::runtime_error);
 
-    EXPECT_THROW(
-        lexer.tokenize("echo \"", ctx),
-        std::runtime_error
-    );
+    EXPECT_THROW(lexer.tokenize("echo \"", ctx), std::runtime_error);
 }
 
 TEST(LexerTest, UnclosedQuotesMultiple) {
@@ -146,18 +140,13 @@ TEST(LexerTest, UnclosedQuotesMultiple) {
     Lexer lexer;
 
     EXPECT_THROW(
-        lexer.tokenize("echo \"hello 'world", ctx),
-        std::runtime_error
+        lexer.tokenize("echo \"hello 'world", ctx), std::runtime_error
     );
 
-    EXPECT_THROW(
-        lexer.tokenize("echo \"hello world", ctx),
-        std::runtime_error
-    );
+    EXPECT_THROW(lexer.tokenize("echo \"hello world", ctx), std::runtime_error);
 
     EXPECT_THROW(
-        lexer.tokenize("echo \"hello 'world", ctx),
-        std::runtime_error
+        lexer.tokenize("echo \"hello 'world", ctx), std::runtime_error
     );
 }
 

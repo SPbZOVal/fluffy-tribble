@@ -107,12 +107,12 @@ int ExternalRunner::run(
     ExecutionContext &ctx
 ) {
     std::string path = find_in_path(name, ctx);
-    
+
     if (access(path.c_str(), F_OK) != 0) {
         error << "fluffy-tribble: " << name << ": command not found" << '\n';
         return 127;
     }
-    
+
     std::vector<std::string> env_vec = env_to_vector(ctx.env());
     std::vector<std::string> argv_strings;
 
@@ -136,15 +136,15 @@ int ExternalRunner::run(
     }
     envp.push_back(nullptr);
 
-    int input_fd  = get_fd_from_stream(input);
+    int input_fd = get_fd_from_stream(input);
     int output_fd = get_fd_from_stream(output);
-    int error_fd  = get_fd_from_stream(error);
+    int error_fd = get_fd_from_stream(error);
 
-    bool need_pipe_in  = (input_fd == -1);
+    bool need_pipe_in = (input_fd == -1);
     bool need_pipe_out = (output_fd == -1);
     bool need_pipe_err = (error_fd == -1);
 
-    int pipe_in[2]  = {-1, -1};
+    int pipe_in[2] = {-1, -1};
     int pipe_out[2] = {-1, -1};
     int pipe_err[2] = {-1, -1};
 
@@ -152,20 +152,38 @@ int ExternalRunner::run(
         return -1;
     }
     if (need_pipe_out && pipe(pipe_out) == -1) {
-        if (need_pipe_in) { close(pipe_in[0]); close(pipe_in[1]); }
+        if (need_pipe_in) {
+            close(pipe_in[0]);
+            close(pipe_in[1]);
+        }
         return -1;
     }
     if (need_pipe_err && pipe(pipe_err) == -1) {
-        if (need_pipe_in) { close(pipe_in[0]); close(pipe_in[1]); }
-        if (need_pipe_out) { close(pipe_out[0]); close(pipe_out[1]); }
+        if (need_pipe_in) {
+            close(pipe_in[0]);
+            close(pipe_in[1]);
+        }
+        if (need_pipe_out) {
+            close(pipe_out[0]);
+            close(pipe_out[1]);
+        }
         return -1;
     }
 
     pid_t pid = fork();
     if (pid < 0) {
-        if (need_pipe_in) { close(pipe_in[0]); close(pipe_in[1]); }
-        if (need_pipe_out) { close(pipe_out[0]); close(pipe_out[1]); }
-        if (need_pipe_err) { close(pipe_err[0]); close(pipe_err[1]); }
+        if (need_pipe_in) {
+            close(pipe_in[0]);
+            close(pipe_in[1]);
+        }
+        if (need_pipe_out) {
+            close(pipe_out[0]);
+            close(pipe_out[1]);
+        }
+        if (need_pipe_err) {
+            close(pipe_err[0]);
+            close(pipe_err[1]);
+        }
         return -1;
     }
 
@@ -249,13 +267,25 @@ int ExternalRunner::run(
         status = -1;
     }
 
-    if (writer.joinable()) writer.join();
-    if (reader_out.joinable()) reader_out.join();
-    if (reader_err.joinable()) reader_err.join();
+    if (writer.joinable()) {
+        writer.join();
+    }
+    if (reader_out.joinable()) {
+        reader_out.join();
+    }
+    if (reader_err.joinable()) {
+        reader_err.join();
+    }
 
-    if (need_pipe_in) close(pipe_in[1]);
-    if (need_pipe_out) close(pipe_out[0]);
-    if (need_pipe_err) close(pipe_err[0]);
+    if (need_pipe_in) {
+        close(pipe_in[1]);
+    }
+    if (need_pipe_out) {
+        close(pipe_out[0]);
+    }
+    if (need_pipe_err) {
+        close(pipe_err[0]);
+    }
 
     if (WIFEXITED(status)) {
         return WEXITSTATUS(status);

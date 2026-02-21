@@ -101,10 +101,7 @@ TEST(CommandParserTest, MultiPipe) {
 }
 
 TEST(CommandParserTest, ErrorUnclosedQuote) {
-    EXPECT_THROW(
-        parse_line("echo 'unclosed"),
-        std::runtime_error
-    );
+    EXPECT_THROW(parse_line("echo 'unclosed"), std::runtime_error);
 }
 
 TEST(CommandParserTest, ErrorEmptyAssignment) {
