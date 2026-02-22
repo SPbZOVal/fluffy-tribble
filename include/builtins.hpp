@@ -79,7 +79,7 @@ void run<CommandID::GREP>(
     ReaderT &input,
     WriterT &output,
     WriterT &err,
-    ExecutionContext &ctx
+    [[maybe_unused]] ExecutionContext &ctx
 );
 
 /** Специализация: exit — устанавливает флаг выхода и код. */
