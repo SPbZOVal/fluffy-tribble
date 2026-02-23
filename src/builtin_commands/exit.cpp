@@ -20,5 +20,6 @@ void run<CommandID::EXIT>(
     }
     ctx.set_exit_code(code);
     ctx.set_exit(true);
+    ctx.set_last_status(code);
 }
 }  // namespace fluffy_tribble

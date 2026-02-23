@@ -29,11 +29,6 @@ void CommandExecutor::execute(
             auto fn = CommandManager::get_command_fn(cmd.id);
             if (fn) {
                 fn(cmd.args, input, output, error, ctx);
-                ctx.set_last_status(0);
-            }
-
-            if (!ctx.is_exit()) {
-                ctx.set_last_status(0);
             }
 
             break;

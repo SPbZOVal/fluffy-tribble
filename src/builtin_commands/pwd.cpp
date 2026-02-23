@@ -12,5 +12,6 @@ void run<CommandID::PWD>(
     ExecutionContext &ctx
 ) {
     output << ctx.cwd() << '\n';
+    ctx.set_last_status(0);
 }
 }  // namespace fluffy_tribble

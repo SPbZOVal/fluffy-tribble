@@ -15,8 +15,20 @@ struct GrepArguments {
     bool ignore_case;
 };
 
-GrepArguments
-parse_grep_arguments(const std::vector<std::string> &args, WriterT &output) {
+void print_usage(WriterT &err) {
+    err << "Usage: grep [OPTION]... PATTERNS [FILE]...\n";
+}
+
+GrepArguments parse_grep_arguments(
+    const std::vector<std::string> &args,
+    WriterT &output,
+    WriterT &err
+) {
+    if (args.empty()) {
+        print_usage(err);
+        throw std::runtime_error("missing pattern");
+    }
+
     GrepArguments grep_args;
 
     argparse::ArgumentParser program(
@@ -35,7 +47,12 @@ parse_grep_arguments(const std::vector<std::string> &args, WriterT &output) {
         "Print num lines of trailing context after each match."
     );
 
-    program.parse_args(args);
+    try {
+        program.parse_args(args);
+    } catch (const std::exception &e) {
+        err << "grep: " << e.what() << "\n";
+        throw;
+    }
 
     grep_args.pattern = program.get<std::string>("pattern");
 
@@ -47,10 +64,14 @@ parse_grep_arguments(const std::vector<std::string> &args, WriterT &output) {
     grep_args.ignore_case = program.get<bool>("-i");
     grep_args.after_context = program.get<int>("-A");
 
+    if (grep_args.pattern.empty()) {
+        print_usage(err);
+        throw std::runtime_error("empty pattern");
+    }
     return grep_args;
 }
 
-std::regex prepare_regex(const GrepArguments &grep_args) {
+std::regex prepare_regex(const GrepArguments &grep_args, WriterT &) {
     std::string pattern = grep_args.pattern;
 
     if (grep_args.word_regexp) {
@@ -106,35 +127,39 @@ void run<CommandID::GREP>(
     ReaderT &input,
     WriterT &output,
     WriterT &err,
-    [[maybe_unused]] ExecutionContext &ctx
+    ExecutionContext &ctx
 ) {
     GrepArguments grep_args;
     try {
-        grep_args = parse_grep_arguments(args, output);
+        grep_args = parse_grep_arguments(args, output, err);
     } catch (const std::exception &e) {
-        err << "error during parsing grep arguments: " << e.what() << "\n";
+        ctx.set_last_status(2);
         return;
     }
 
     std::regex re;
     try {
-        re = prepare_regex(grep_args);
+        re = prepare_regex(grep_args, err);
     } catch (const std::regex_error &e) {
-        err << "Invalid regex: " << e.what() << "\n";
+        err << "grep: invalid regex: " << e.what() << "\n";
+        ctx.set_last_status(2);
         return;
     }
 
+    bool any_error = false;
     if (grep_args.files.empty()) {
         process_stream(input, output, grep_args, re);
     } else {
         for (const auto &filename : grep_args.files) {
             std::ifstream file(filename);
             if (!file) {
-                err << "grep: cannot open file " << filename << "\n";
+                err << "grep: " << filename << ": No such file or directory\n";
+                any_error = true;
                 continue;
             }
             process_stream(file, output, grep_args, re);
         }
     }
+    ctx.set_last_status(any_error ? 1 : 0);
 }
 }  // namespace fluffy_tribble

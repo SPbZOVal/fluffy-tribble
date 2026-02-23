@@ -15,18 +15,27 @@ void cat_stream(ReaderT &in, WriterT &out) {
 }  // namespace
 
 template <>
-void run<
-    CommandID::
-        CAT>(const std::vector<std::string> &args, ReaderT &input, WriterT &output, WriterT &err, ExecutionContext &) {
+void run<CommandID::CAT>(
+    const std::vector<std::string> &args,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
+    ExecutionContext &ctx
+) {
     if (args.empty()) {
         cat_stream(input, output);
+        ctx.set_last_status(0);
         return;
     }
     std::ifstream f(args[0]);
     if (!f) {
         err << "cat: cannot open '" << args[0] << "'\n";
+        ctx.set_last_status(1);
         return;
     }
+
     cat_stream(f, output);
+    ctx.set_last_status(0);
 }
+
 }  // namespace fluffy_tribble

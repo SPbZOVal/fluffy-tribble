@@ -28,7 +28,7 @@ Pipe CommandParser::parse(const TokenStream &tokens) {
                 words.erase(words.begin());
                 cmd.args.assign(words.begin(), words.end());
                 cmd.id = CommandManager::get_command_id(cmd.name);
-                if (cmd.id == CommandID::EXTERNAL) {
+                if (should_insert_name(cmd.id)) {
                     cmd.args.insert(cmd.args.begin(), cmd.name);
                 }
                 pipe.push_back(std::move(cmd));

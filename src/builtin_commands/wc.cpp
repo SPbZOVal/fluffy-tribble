@@ -5,15 +5,20 @@
 
 namespace fluffy_tribble {
 template <>
-void run<
-    CommandID::
-        WC>(const std::vector<std::string> &args, ReaderT &input, WriterT &output, WriterT &err, ExecutionContext &) {
+void run<CommandID::WC>(
+    const std::vector<std::string> &args,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
+    ExecutionContext &ctx
+) {
     ReaderT *in = &input;
     std::ifstream file;
     if (!args.empty()) {
         file.open(args[0]);
         if (!file) {
             err << "wc: cannot open '" << args[0] << "'\n";
+            ctx.set_last_status(1);
             return;
         }
         in = &file;
@@ -24,7 +29,7 @@ void run<
     std::string line;
     while (std::getline(*in, line)) {
         ++lines;
-        bytes += line.size() + 1;  // + newline
+        bytes += line.size() + 1;
         std::istringstream iss(line);
         std::string w;
         while (iss >> w) {
@@ -36,5 +41,6 @@ void run<
         output << ' ' << args[0];
     }
     output << '\n';
+    ctx.set_last_status(0);
 }
 }  // namespace fluffy_tribble
