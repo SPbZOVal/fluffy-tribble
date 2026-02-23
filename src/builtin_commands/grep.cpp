@@ -15,24 +15,15 @@ struct GrepArguments {
     bool ignore_case;
 };
 
-void print_usage(WriterT &err) {
-    err << "Usage: grep [OPTION]... PATTERNS [FILE]...\n";
-}
-
 GrepArguments parse_grep_arguments(
     const std::vector<std::string> &args,
     WriterT &output,
     WriterT &err
 ) {
-    if (args.empty()) {
-        print_usage(err);
-        throw std::runtime_error("missing pattern");
-    }
-
     GrepArguments grep_args;
 
     argparse::ArgumentParser program(
-        "grep", "1.0", argparse::default_arguments::help, false, output
+        "grep", "1.0", argparse::default_arguments::none, false, output
     );
     program.add_argument("pattern").help("Search pattern");
     program.add_argument("files").remaining().help("Files to search");
@@ -64,10 +55,6 @@ GrepArguments parse_grep_arguments(
     grep_args.ignore_case = program.get<bool>("-i");
     grep_args.after_context = program.get<int>("-A");
 
-    if (grep_args.pattern.empty()) {
-        print_usage(err);
-        throw std::runtime_error("empty pattern");
-    }
     return grep_args;
 }
 

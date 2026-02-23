@@ -53,26 +53,17 @@ static std::string run_pipe(const std::string &line) {
     return out.str();
 }
 
-TEST(GrepTest, NoArguments) {
-    ExecutionContext ctx;
-    std::istringstream in;
-    std::ostringstream out, err;
-    std::vector<std::string> args;
-
-    run<CommandID::GREP>(args, in, out, err, ctx);
-    EXPECT_EQ(ctx.last_status(), 2);
-    EXPECT_FALSE(err.str().empty());
-}
-
 TEST(GrepTest, EmptyPattern) {
     ExecutionContext ctx;
     std::istringstream in;
     std::ostringstream out, err;
-    std::vector<std::string> args = {""};
+    std::vector<std::string> args = {"grep"};
 
     run<CommandID::GREP>(args, in, out, err, ctx);
     EXPECT_EQ(ctx.last_status(), 2);
-    EXPECT_FALSE(err.str().empty());
+    EXPECT_EQ(
+        err.str(), "grep: pattern: 1 argument(s) expected. 0 provided.\n"
+    );
 }
 
 TEST(GrepTest, StdinBasic) {
@@ -195,7 +186,7 @@ TEST(GrepTest, UnknownOption) {
 
     run<CommandID::GREP>(args, in, out, err, ctx);
     EXPECT_EQ(ctx.last_status(), 2);
-    EXPECT_FALSE(err.str().empty());
+    EXPECT_EQ(err.str(), "grep: Unknown argument: -z\n");
 }
 
 TEST(GrepTest, MissingArgumentForA) {
@@ -206,7 +197,69 @@ TEST(GrepTest, MissingArgumentForA) {
 
     run<CommandID::GREP>(args, in, out, err, ctx);
     EXPECT_EQ(ctx.last_status(), 2);
-    EXPECT_FALSE(err.str().empty());
+    EXPECT_EQ(
+        err.str(),
+        "grep: Failed to parse 'pattern' as decimal integer: pattern 'pattern' "
+        "not found\n"
+    );
+}
+
+TEST(GrepTest, MissingArgumentForA1) {
+    ExecutionContext ctx;
+    std::istringstream in;
+    std::ostringstream out, err;
+    std::vector<std::string> args = {"grep", "-A1", "pattern"};
+
+    run<CommandID::GREP>(args, in, out, err, ctx);
+    EXPECT_EQ(ctx.last_status(), 2);
+    EXPECT_EQ(
+        err.str(),
+        "grep: Failed to parse 'pattern' as decimal integer: pattern 'pattern' "
+        "not found\n"
+    );
+}
+
+TEST(GrepTest, CombinedOptionsWi) {
+    TempFile file("Test line\ntest\nTESTING\nanother test\n");
+    ExecutionContext ctx;
+    std::istringstream in;
+    std::ostringstream out, err;
+    std::vector<std::string> args = {"grep", "-wi", "test", file.name()};
+
+    run<CommandID::GREP>(args, in, out, err, ctx);
+    EXPECT_EQ(ctx.last_status(), 0);
+    EXPECT_TRUE(err.str().empty());
+    EXPECT_EQ(out.str(), "Test line\ntest\nanother test\n");
+}
+
+TEST(GrepTest, CombinedOptionsIw) {
+    TempFile file("Test line\ntest\nTESTING\nanother test\n");
+    ExecutionContext ctx;
+    std::istringstream in;
+    std::ostringstream out, err;
+    std::vector<std::string> args = {"grep", "-iw", "test", file.name()};
+
+    run<CommandID::GREP>(args, in, out, err, ctx);
+    EXPECT_EQ(ctx.last_status(), 0);
+    EXPECT_TRUE(err.str().empty());
+    EXPECT_EQ(out.str(), "Test line\ntest\nanother test\n");
+}
+
+TEST(GrepTest, CombinedOptionsWai) {
+    TempFile file("testing\nTest line\nTEST\nmy test\n");
+    ExecutionContext ctx;
+    std::istringstream in;
+    std::ostringstream out, err;
+    std::vector<std::string> args = {"grep", "-wAi", "1", "test", file.name()};
+
+    run<CommandID::GREP>(args, in, out, err, ctx);
+    EXPECT_EQ(ctx.last_status(), 0);
+    EXPECT_TRUE(err.str().empty());
+    std::string expected =
+        "Test line\n"
+        "TEST\n"
+        "my test\n";
+    EXPECT_EQ(out.str(), expected);
 }
 
 TEST(GrepPipeTest, CatPipeGrepBasic) {
