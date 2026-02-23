@@ -72,6 +72,16 @@ void run<CommandID::PWD>(
     ExecutionContext &ctx
 );
 
+/** Специализация: grep — поиск в файле. */
+template <>
+void run<CommandID::GREP>(
+    const std::vector<std::string> &args,
+    ReaderT &input,
+    WriterT &output,
+    WriterT &err,
+    [[maybe_unused]] ExecutionContext &ctx
+);
+
 /** Специализация: exit — устанавливает флаг выхода и код. */
 template <>
 void run<CommandID::EXIT>(

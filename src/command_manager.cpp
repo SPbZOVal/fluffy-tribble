@@ -4,6 +4,7 @@
 #include <string_view>
 #include <unordered_map>
 #include "builtins.hpp"
+#include "command_id.hpp"
 #include "execution_context.hpp"
 
 namespace fluffy_tribble {
@@ -33,6 +34,7 @@ bool init_default_commands() {
     m[to_lower("echo")] = CommandID::ECHO;
     m[to_lower("wc")] = CommandID::WC;
     m[to_lower("pwd")] = CommandID::PWD;
+    m[to_lower("grep")] = CommandID::GREP;
     m[to_lower("exit")] = CommandID::EXIT;
     return true;
 }
@@ -64,6 +66,8 @@ CommandManager::CommandFn CommandManager::get_command_fn(CommandID id) {
             return &run<CommandID::WC>;
         case CommandID::PWD:
             return &run<CommandID::PWD>;
+        case CommandID::GREP:
+            return &run<CommandID::GREP>;
         case CommandID::EXIT:
             return &run<CommandID::EXIT>;
         default:

@@ -6,29 +6,43 @@ set(CMAKE_CXX_STANDARD 23)
 # Enable generation of compile_commands.json for better IDE support
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-# Library with all logic (shared by main and tests)
-add_library(fluffy_tribble_lib
-  src/lexer.cpp
-  src/execution_context.cpp
-  src/command_parser.cpp
-  src/command_manager.cpp
-  src/builtins.cpp
-  src/external_runner.cpp
-  src/command_executor.cpp
-  src/pipe_executor.cpp
+# Fetch argparse library
+include(FetchContent)
+FetchContent_Declare(
+  argparse
+  GIT_REPOSITORY https://github.com/p-ranav/argparse.git
+  GIT_TAG v3.2
 )
-target_include_directories(fluffy_tribble_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
+FetchContent_MakeAvailable(argparse)
+
+# Set properties
+set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(PROJECT_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+set(PROJECT_LIB_NAME ${PROJECT_NAME}_lib)
+set(PROJECT_TEST_NAME ${PROJECT_NAME}_test)
+
+file(GLOB_RECURSE PROJECT_SOURCES ${PROJECT_SOURCE_DIR}/*.cpp)
+list(REMOVE_ITEM PROJECT_SOURCES ${PROJECT_SOURCE_DIR}/main.cpp)
+
+file(GLOB_RECURSE PROJECT_TEST_SOURCES ${PROJECT_TEST_DIR}/*.cpp) 
+
+# Library with all logic (shared by main and tests)
+add_library(${PROJECT_LIB_NAME} ${PROJECT_SOURCES})
+target_include_directories(${PROJECT_LIB_NAME} PUBLIC 
+  ${CMAKE_SOURCE_DIR}/include
+  ${argparse_SOURCE_DIR}/include
+)
 
 # Main executable
-add_executable(fluffy_tribble src/main.cpp)
-target_link_libraries(fluffy_tribble PRIVATE fluffy_tribble_lib)
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_LIB_NAME})
 
 find_package(Threads REQUIRED)
-target_link_libraries(fluffy_tribble_lib PUBLIC Threads::Threads)
-target_link_libraries(fluffy_tribble PRIVATE Threads::Threads)
+target_link_libraries(${PROJECT_LIB_NAME} PUBLIC Threads::Threads)
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 
 # Tests (GTest)
-include(FetchContent)
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
@@ -38,13 +52,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
-add_executable(fluffy_tribble_test
-  tests/lexer_test.cpp
-  tests/command_parser_test.cpp
-  tests/command_manager_test.cpp
-  tests/builtins_test.cpp
-  tests/execution_context_test.cpp
-  tests/pipe_test.cpp
-)
-target_link_libraries(fluffy_tribble_test PRIVATE fluffy_tribble_lib GTest::gtest GTest::gtest_main)
-add_test(NAME fluffy_tribble_test COMMAND fluffy_tribble_test)
+add_executable(${PROJECT_TEST_NAME} ${PROJECT_TEST_SOURCES})
+target_link_libraries(${PROJECT_TEST_NAME} PRIVATE ${PROJECT_LIB_NAME} GTest::gtest GTest::gtest_main)
+target_include_directories(${PROJECT_TEST_NAME} PRIVATE ${argparse_SOURCE_DIR}/include)
+add_test(NAME ${PROJECT_TEST_NAME} COMMAND ${PROJECT_TEST_NAME})

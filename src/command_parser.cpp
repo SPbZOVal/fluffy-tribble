@@ -1,9 +1,16 @@
 #include "command_parser.hpp"
 #include <string>
+#include "command_id.hpp"
 #include "command_manager.hpp"
 #include "token.hpp"
 
 namespace fluffy_tribble {
+
+namespace {
+bool should_insert_name(CommandID id) {
+    return id == CommandID::EXTERNAL || id == CommandID::GREP;
+}
+}  // namespace
 
 Pipe CommandParser::parse(const TokenStream &tokens) {
     Pipe pipe;
@@ -21,7 +28,7 @@ Pipe CommandParser::parse(const TokenStream &tokens) {
                 words.erase(words.begin());
                 cmd.args.assign(words.begin(), words.end());
                 cmd.id = CommandManager::get_command_id(cmd.name);
-                if (cmd.id == CommandID::EXTERNAL) {
+                if (should_insert_name(cmd.id)) {
                     cmd.args.insert(cmd.args.begin(), cmd.name);
                 }
                 pipe.push_back(std::move(cmd));
@@ -68,7 +75,7 @@ Pipe CommandParser::parse(const TokenStream &tokens) {
         words.erase(words.begin());
         cmd.args.assign(words.begin(), words.end());
         cmd.id = CommandManager::get_command_id(cmd.name);
-        if (cmd.id == CommandID::EXTERNAL) {
+        if (should_insert_name(cmd.id)) {
             cmd.args.insert(cmd.args.begin(), cmd.name);
         }
         pipe.push_back(std::move(cmd));
